@@ -19,7 +19,9 @@ ssh student@172.16.228.15
 
 ### Installation de Python
 
-Installation de python 3.11
+- [Téléchargement officiel Python](https://www.python.org/downloads/)
+ou
+- Installation de python 3.11 avec PPA :
 
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
@@ -28,6 +30,7 @@ sudo apt install python3.11
 # Vérification
 python3 --version
 ```
+
 Installation de `pip`
 ```bash
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -38,6 +41,7 @@ python3 -m pip -V
 
 ### Installation d'Ansible
 
+- [Documentation Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 ```bash
 python3 -m pip install --user ansible
 # Vérification
@@ -45,13 +49,6 @@ ansible --version
 ```
 
 ## Configuration avec Ansible
-
-### Installation d'Ansible sur sa machine
-
-- [Installation Python](https://www.python.org/downloads/)
-- [Installation d'Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
-
-### Lancement des scripts de configuration Ansible
 
 
 # Dev
