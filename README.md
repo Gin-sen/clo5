@@ -5,7 +5,7 @@
 ```txt
 VM1 : 172.16.228.64:student:p?sk4aA9
 VM2 : 172.16.228.81:student:(YcdA3YX
-VM3 : 172.16.228.15:student:AAc=mo9T
+VM3 (master) : 172.16.228.15:student:AAc=mo9T
 ```
 
 Première connexion :
@@ -16,6 +16,14 @@ ssh student@172.16.228.15
 ```
 
 ## Setup
+
+Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour Windows):
+```txt
+172.16.228.15 k8s-debian-0 kubemaster vm015
+172.16.228.64 k8s-debian-1 kubeworker-1 vm64
+172.16.228.81 k8s-debian-2 kubeworker-2 vm81
+```
+
 
 ### Installation de Python
 
@@ -49,6 +57,28 @@ ansible --version
 ```
 
 ## Configuration avec Ansible
+
+A partir d'ici, nous considèrerons le dossier `ansible_dir` comme le répertoire racine.
+
+le fichier hosts.ini
+
+### Création de rôle Ansible
+
+Dans le dossier `roles` :
+````bash
+ansible-galaxy role init users
+ansible-galaxy role init kubernetes
+ansible-galaxy role init docker_registry
+```
+
+#### Création de `tasks`
+
+
+### Lancement du playbook
+
+```bash
+ansible-playbook -i hosts.ini infrastructure.yaml
+```
 
 
 # Dev
