@@ -1,2 +1,34 @@
 ---
 # tasks file for roles/kubernetes
+
+- include_tasks: 
+    file: "setup-repo-debian.yml"
+    apply:
+      tags: repo
+  tags: repo
+
+- setup:
+
+- include_tasks: 
+    file: preflight.yml
+    apply:
+      tags: preflight
+  tags: preflight
+
+- include_tasks: 
+    file: cri-install.yml
+    apply:
+      tags: cri
+  tags: cri
+
+- include_tasks: 
+    file: kubectl-install.yml
+    apply:
+      tags: kubectl
+  tags: kubectl
+
+# - include_tasks: 
+#     file: init_cluster.yml
+#     apply:
+#       tags: kubeinit
+#   tags: kubeinit

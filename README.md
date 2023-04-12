@@ -66,14 +66,14 @@ le fichier hosts.ini
 
 Dans le dossier `roles` :
 ````bash
-ansible-galaxy role init users
+ansible-galaxy role init gitlab
 ansible-galaxy role init kubernetes
 ansible-galaxy role init docker_registry
 ```
 
 #### Création d'un mot de passe dans le Vault
 
-Prérequis:
+Prérequis sur local:
 - `sshpass`
 
 ```bash
@@ -88,8 +88,15 @@ ansible-vault
 
 ### Lancement du playbook
 
+Prérequis:
+- module `kubernetes.core` d'Ansible
+
 ```bash
-ansible-playbook -i hosts infrastructure.yaml
+ansible-galaxy collection install kubernetes.core
+```
+
+```bash
+ansible-playbook infrastructure.yaml -i hosts
 ```
 
 

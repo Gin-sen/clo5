@@ -1,25 +1,15 @@
 ---
-- name: User Creation
-  hosts: kubernetes
+
+- hosts: kubemaster
   become: yes
-  remote_user: places_m
-  roles:
-    - role: roles/users
+  roles: 
+    - roles/kubernetes
   vars_files:
     - vars.yaml
 
-# - hosts: kubemaster
-#   become: yes
-#   remote_user: kubernetes
-#   roles: 
-#     - roles/kubernetes
-#   vars_files:
-#     - vars.yaml
-
-# - hosts: kubeworker 
-#   become: yes
-#   remote_user: kubernetes
-#   roles: 
-#     - roles/kubernetes
-#   vars_files:
-#     - vars.yaml
+- hosts: kubeworker 
+  become: yes
+  roles: 
+    - roles/kubernetes
+  vars_files:
+    - vars.yaml

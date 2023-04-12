@@ -1,2 +1,4 @@
 ---
 # vars file for roles/kubernetes
+cri_socket_paths:
+  containerd: unix:///run/containerd/containerd.sock
