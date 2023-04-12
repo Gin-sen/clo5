@@ -5,17 +5,27 @@
   ignore_errors: true
   register: cluster_exist
 
+- set_fact:
+    kubernetes_init: "{% if kubernetes_init_host is defined and  kubernetes_init_host == inventory_hostname %}yes{% else %}no{% endif %}"
+
 # - set_fact:
-#     kubernetes_init: "{% if kubernetes_init_host is defined and  kubernetes_init_host == inventory_hostname %}yes{% else %}no{% endif %}"
+#     kubernetes_ip_address: "{{ ansible.utils.ipaddr() }}"
 
 # - set_fact:
 #     kubernetes_ip_address: "{{ item }}"
-#   when: "item | ipaddr( kubernetes_subnet )"
-#   with_items: "{{ ansible_all_ipv4_addresses | difference([kubernetes_vip_ip]) }}"
+#   when: "item | ansible.utils.ipaddr( kubernetes_subnet )"
+#   with_items: "{{ ansible_all_ipv4_addresses }}"
 
-# - set_fact:
-#     kubernetes_image_repository: "{% if kubernetes_version is version('1.25.0', '<') %}k8s.gcr.io{% else %}registry.k8s.io{% endif %}"
-  
+- set_fact:
+    kubernetes_image_repository: "{% if kubernetes_version is version('1.25.0', '<') %}k8s.gcr.io{% else %}registry.k8s.io{% endif %}"
+
+- name: Debug 
+  ansible.builtin.debug:
+    msg: 
+      - inventory_hostname = {{ inventory_hostname }}
+      - cluster_exist = {{ cluster_exist }}
+      # - kubernetes_ip_address = {{ kubernetes_ip_address }}
+      - kubernetes_image_repository = {{ kubernetes_image_repository }}
 # - block:
 
 #     - set_fact:

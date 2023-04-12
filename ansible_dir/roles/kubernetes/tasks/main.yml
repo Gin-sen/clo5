@@ -27,8 +27,25 @@
       tags: kubectl
   tags: kubectl
 
+- include_tasks: 
+    file: init-cluster.yml
+    apply:
+      tags: kubeinit
+  tags: kubeinit
+  when:
+    - inventory_hostname in groups['kubemaster']
+
+- include_tasks: 
+    file: join-cluster.yml
+    apply:
+      tags: kubejoin
+  tags: kubejoin
+  when:
+    - inventory_hostname in groups['kubeworkers']
 # - include_tasks: 
-#     file: init_cluster.yml
+#     file: join-cluster.yml
 #     apply:
 #       tags: kubeinit
 #   tags: kubeinit
+#   when:
+#     - inventory_hostname in groups['kubeworkers']

@@ -2,6 +2,9 @@
 
 # Infra
 
+A partir d'ici, nous considèrerons le dossier `ansible_dir` comme le répertoire racine.
+
+
 ```txt
 VM1 : 172.16.228.64:student:p?sk4aA9
 VM2 : 172.16.228.81:student:(YcdA3YX
@@ -51,16 +54,13 @@ python3 -m pip -V
 
 - [Documentation Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 ```bash
-python3 -m pip install --user ansible
+python3 -m pip install --user -r requirements.txt
 # Vérification
 ansible --version
 ```
 
 ## Configuration avec Ansible
 
-A partir d'ici, nous considèrerons le dossier `ansible_dir` comme le répertoire racine.
-
-le fichier hosts.ini
 
 ### Création de rôle Ansible
 
@@ -90,9 +90,11 @@ ansible-vault
 
 Prérequis:
 - module `kubernetes.core` d'Ansible
+- module `ansible.utils` d'Ansible
 
 ```bash
 ansible-galaxy collection install kubernetes.core
+ansible-galaxy collection install ansible.utils
 ```
 
 ```bash

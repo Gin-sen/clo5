@@ -1,7 +1,7 @@
 ---
 
 - name: Install containerd.io
-  ansible.builtin.package: 
+  ansible.builtin.apt: 
     name: containerd.io
     state: present
     update_cache: yes 

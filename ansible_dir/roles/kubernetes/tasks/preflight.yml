@@ -1,6 +1,6 @@
 ---
 - name: Install openssl
-  ansible.builtin.package: 
+  ansible.builtin.apt: 
     name: 
       - openssl
     state: present

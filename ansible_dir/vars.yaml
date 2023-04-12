@@ -5,10 +5,11 @@ disable_firewall: yes
 
 kubernetes_version: 1.25.0
 kubernetes_cri: containerd
-kubernetes_cni: flannel
+kubernetes_cni: calico
 kubernetes_dns_domain: cluster.local
 kubernetes_pod_subnet: 10.244.0.0/16
 kubernetes_service_subnet: 10.96.0.0/12
+
 kubernetes_api_port: 6443
 kubernetes_subnet: 192.168.25.0/24 
 install_nginx_ingress: yes

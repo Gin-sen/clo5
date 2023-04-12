@@ -4,12 +4,16 @@
   become: yes
   roles: 
     - roles/kubernetes
+  vars:
+    - k8s_node_role: master
   vars_files:
     - vars.yaml
 
-- hosts: kubeworker 
+- hosts: kubeworkers 
   become: yes
   roles: 
     - roles/kubernetes
+  vars:
+    - k8s_node_role: worker
   vars_files:
     - vars.yaml
