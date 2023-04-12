@@ -71,13 +71,25 @@ ansible-galaxy role init kubernetes
 ansible-galaxy role init docker_registry
 ```
 
-#### Création de `tasks`
+#### Création d'un mot de passe dans le Vault
+
+Prérequis:
+- `sshpass`
+
+```bash
+sudo apt-get install -y sshpass
+```
+
+[En cours]
+```bash
+ansible-vault
+```
 
 
 ### Lancement du playbook
 
 ```bash
-ansible-playbook -i hosts.ini infrastructure.yaml
+ansible-playbook -i hosts infrastructure.yaml
 ```
 
 
