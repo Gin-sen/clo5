@@ -91,15 +91,27 @@ ansible-vault
 Prérequis:
 - module `kubernetes.core` d'Ansible
 - module `ansible.utils` d'Ansible
+- module `ansible.posix` d'Ansible
 
 ```bash
 ansible-galaxy collection install kubernetes.core
 ansible-galaxy collection install ansible.utils
+ansible-galaxy collection install ansible.posix
 ```
+
+#### Usage standard
 
 ```bash
 ansible-playbook infrastructure.yaml -i hosts
 ```
+
+#### Initialisation du cluster
+
+Si vous ne précisez pas cette variable, le script de création de cluster Kubernetes ne se lancera pas
+
+````bash
+ansible-playbook infrastructure.yaml -i hosts -e kubernetes_init_host=172.16.228.15
+````
 
 
 # Dev

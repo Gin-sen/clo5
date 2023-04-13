@@ -28,12 +28,21 @@
   tags: kubectl
 
 - include_tasks: 
+    file: helm-install.yml
+    apply:
+      tags: helm
+  tags: helm
+  when:
+    - inventory_hostname in groups['kubemaster']
+
+- include_tasks: 
     file: init-cluster.yml
     apply:
       tags: kubeinit
   tags: kubeinit
   when:
     - inventory_hostname in groups['kubemaster']
+
 
 - include_tasks: 
     file: join-cluster.yml
@@ -42,10 +51,3 @@
   tags: kubejoin
   when:
     - inventory_hostname in groups['kubeworkers']
-# - include_tasks: 
-#     file: join-cluster.yml
-#     apply:
-#       tags: kubeinit
-#   tags: kubeinit
-#   when:
-#     - inventory_hostname in groups['kubeworkers']

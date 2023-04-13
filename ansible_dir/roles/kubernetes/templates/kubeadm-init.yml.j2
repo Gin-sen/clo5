@@ -13,7 +13,7 @@ localAPIEndpoint:
   advertiseAddress: {{ kubernetes_ip_address }}
   bindPort: {{ kubernetes_api_port }}
 nodeRegistration:
-  criSocket: {{ cri_socket_paths[kubernetes_cri] }}
+  criSocket: {{ cri_socket_path }}
   imagePullPolicy: IfNotPresent
   name: {{ ansible_hostname|lower }}
   taints: null
@@ -32,9 +32,7 @@ dns: {}
 imageRepository: {{ kubernetes_image_repository }}
 kind: ClusterConfiguration
 kubernetesVersion: {{ kubernetes_version }}
-{% if groups['kubemaster'] | length > 1  %}
-controlPlaneEndpoint: {{ kubernetes_vip_ip }}:{{ kubernetes_api_port }}
-{% endif %}
+controlPlaneEndpoint: {{ kubernetes_ip_address }}:{{ kubernetes_api_port }}
 networking:
   dnsDomain: {{ kubernetes_dns_domain }}
   podSubnet: {{ kubernetes_pod_subnet }}
@@ -42,7 +40,9 @@ networking:
 scheduler: {}
 etcd:
   local:
-    dataDir: /var/lib/etcd
+    imageRepository: {{ kubernetes_image_repository }}
+    imageTag: "3.5.6-0"
+    dataDir: "/var/lib/etcd"
 ---
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1

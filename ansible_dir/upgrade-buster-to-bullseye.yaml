@@ -1,0 +1,7 @@
+---
+- hosts: kubernetes
+  become: true
+  become_user: root
+  gather_facts: true
+  roles:
+  - role: roles/upgrade-to-bullseye

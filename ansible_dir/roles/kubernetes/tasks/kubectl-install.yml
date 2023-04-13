@@ -1,5 +1,17 @@
 ---
 
+- name: Unhold kubelet kubeadm kubectl
+  shell: apt-mark unhold kubelet kubeadm kubectl
+
+- name: Uninstall kubelet/kubeadm/kubectl 
+  ansible.builtin.apt: 
+    name: 
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: absent
+    update_cache: yes
+
 - name: Install kubelet kubeadm kubectl
   ansible.builtin.apt: 
     name: 
@@ -7,7 +19,7 @@
       - kubeadm={{ kubernetes_version }}*
       - kubectl={{ kubernetes_version }}*
     state: present
-    update_cache: yes 
+    update_cache: yes
   
 - name: Prevent kubelet/kubeadm/kubectl from being upgraded
   dpkg_selections:

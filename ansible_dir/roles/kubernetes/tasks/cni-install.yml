@@ -4,6 +4,7 @@
   kubernetes.core.helm_repository:
     name: projectcalico
     repo_url: "https://docs.tigera.io/calico/charts"
+    repo_state: present
 
 - name: Deploy latest version of Calico chart inside tigera-operator namespace (and create it)
   kubernetes.core.helm:

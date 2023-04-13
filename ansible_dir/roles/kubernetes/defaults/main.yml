@@ -3,7 +3,8 @@
 
 disable_firewall: no
 
-kubernetes_version: 1.25.0
+kubernetes_version: 1.26.0
+hold_kube_version: false
 kubernetes_cri: containerd
 kubernetes_cni: flannel
 kubernetes_dns_domain: cluster.local
@@ -11,27 +12,24 @@ kubernetes_pod_subnet: 10.244.0.0/16
 kubernetes_service_subnet: 10.96.0.0/12
 kubernetes_api_port: 6443
 
-kubernetes_subnet: 192.168.25.0/24 
 
-### global deploy vars ###
+sans_base:
+  - "kubernetes"
+  - "kubernetes.default"
+  - "kubernetes.default.svc"
+  - "kubernetes.default.svc.{{ kubernetes_dns_domain }}"
+  - "localhost"
+  - "127.0.0.1"
 
-global_packages:
-  - apt-transport-https
-  - ca-certificates
-  - curl
-  - gnupg-agent
-  - software-properties-common
-  - python-pip 
+cri_socket_path: unix:///run/containerd/containerd.sock
 
-docker_and_dependencies:
-  - docker-ce 
-  - docker-ce-cli 
-  - containerd.io 
+cni_plugins_url: https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
+cni_plugins_archive: cni-plugins-linux-amd64-v1.2.0.tgz
 
-kube_and_dependencies:
-  - kubelet=1.25.0-00
-  - cri-tools=1.25.0-00
-  - kubeadm=1.25.0-00
-  - kubectl=1.25.0-00
+helm_version: 'v3.11.3'
+helm_platform: linux
+helm_arch: amd64
 
-gpg_key: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+helm_repo_path: "https://get.helm.sh"
+
+helm_bin_path: /usr/local/bin/helm

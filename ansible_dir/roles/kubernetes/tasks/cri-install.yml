@@ -1,35 +1,60 @@
 ---
 
+- name: Remove old containerd package
+  ansible.builtin.apt: 
+    name: containerd
+    state: absent
+
 - name: Install containerd.io
   ansible.builtin.apt: 
     name: containerd.io
     state: present
     update_cache: yes 
 
+# - name: Create local systemd directory
+#   ansible.builtin.file: 
+#     name: /usr/local/lib/systemd/system
+#     state: directory
+
+# - name: Get containerd service file
+#   template:
+#     src: containerd-systemd.service.j2
+#     dest: /usr/local/lib/systemd/system/containerd.service
+#     owner: root
+#     group: root
+#     mode: "0644"
+
+- name: Create CNI directory
+  ansible.builtin.file: 
+    name: /opt/cni/bin
+    state: directory
+
+- name: Unarchive CNI plugins
+  ansible.builtin.unarchive:
+    src:  "{{ cni_plugins_url }}"
+    dest: /opt/cni/bin
+    remote_src: yes
+
 - name: Create containerd directory
   ansible.builtin.file: 
     name: /etc/containerd
     state: directory
 
-- name: Check if config.toml is updated
-  ansible.builtin.lineinfile:
-    path: /etc/containerd/config.toml
-    regexp: '^#[grpc]'
-    state: absent
-  check_mode: yes
-  changed_when: false
-  register: containerd_config
+- name: Template containerd CNI plugin config file
+  template:
+    src: cni-10-containerd-net.conflist.j2
+    dest: /etc/cni/net.d/10-containerd-net.conflist
+    owner: root
+    group: root
+    mode: "0644"
 
-- name: Render containerd default config
-  ansible.builtin.shell: containerd config default > /etc/containerd/config.toml
-  when: 
-    - containerd_config.found
-
-- name: enable SystemdCgroup for containerd
-  ansible.builtin.replace:
-    path: /etc/containerd/config.toml
-    regexp: '^(\s*)SystemdCgroup(.*)$'
-    replace: '\1SystemdCgroup = true'
+- name: Template containerd config file
+  template:
+    src: containerd-config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
   notify:
     - reload containerd
 
@@ -38,6 +63,7 @@
     name: containerd
     state: started
     enabled: yes
+    daemon_reload: true
 
 - name: Force all notified handlers to run now
   meta: flush_handlers
