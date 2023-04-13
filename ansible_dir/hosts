@@ -2,8 +2,8 @@
 kubemaster
 kubeworkers
 
-[gitlab]
-172.16.228.15
+[gitlab:children]
+kubemaster
 
 [kubemaster]
 172.16.228.15
