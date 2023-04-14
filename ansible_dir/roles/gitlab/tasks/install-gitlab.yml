@@ -1,0 +1,22 @@
+---
+
+- name: check if gitlab already installed
+  stat: path=/usr/bin/gitlab-ctl
+  register: gitlab_file
+
+
+- name: Download GitLab repository installation script.
+  get_url:
+    url: "{{ install_gitlab_url }}"
+    dest: /tmp/gitlab_install.sh
+  when: not gitlab_file.stat.exists
+
+- name: install repo
+  command: bash /tmp/gitlab_install.sh
+  when: not gitlab_file.stat.exists
+
+- name: install gitlab
+  package:
+    name: "{{ gitlab_package }}"
+    state: present
+  when: not gitlab_file.stat.exists

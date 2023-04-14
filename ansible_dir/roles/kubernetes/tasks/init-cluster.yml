@@ -68,7 +68,7 @@
       ansible.builtin.replace:
         path: /etc/kubernetes/admin.conf
         regexp: '(\s+)server: https://172\.16\.228\.15:6443(\s+.*)?$'
-        line: '\1server: https://172.16.228.15:6443\2'
+        line: '\1server: https://{{ remote_ip_hostname }}:6443\2'
 
     - name: Copy .kube/config file
       ansible.builtin.copy: 

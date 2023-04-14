@@ -1,0 +1,6 @@
+---
+# defaults file for roles/gitlab
+install_gitlab_url: "https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh"
+
+gitlab_package:
+  - gitlab-ce

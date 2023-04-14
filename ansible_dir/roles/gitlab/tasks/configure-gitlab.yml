@@ -1,0 +1,16 @@
+---
+- name: check if config file exist
+  stat: path=/etc/gitlab/gitlab.rb
+  register: gitlab_config_file
+
+- name: inject gitlab template
+  ansible.builtin.template:
+    src: gitlab.rb.j2
+    dest: /etc/gitlab/gitlab.rb
+    owner: root
+    group: root
+    mode: "0600"
+  notify:
+    - gitlab-ctl reconfigure
+  when:
+    - gitlab_configuration_file is not defined

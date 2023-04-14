@@ -1,0 +1,5 @@
+---
+# handlers file for roles/gitlab
+
+  - name: gitlab-ctl reconfigure
+    command: gitlab-ctl reconfigure

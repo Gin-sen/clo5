@@ -1,6 +1,7 @@
 ---
 
-disable_firewall: yes
+gitlab_ip: http://172.16.228.15
+ext_gitlab_url: http://gitlabserver.clo5.com
 
 kubernetes_version: 1.25.0
 kubernetes_cri: containerd
