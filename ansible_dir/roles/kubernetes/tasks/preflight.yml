@@ -1,4 +1,26 @@
 ---
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    insertbefore: '^127.0.0.1       localhost'
+    regexp: '^172.16.228.15 k8s-debian-0 kubemaster vm015$'
+    line: 172.16.228.15 k8s-debian-0 kubemaster vm015
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    insertbefore: '^127.0.0.1       localhost'
+    regexp: '^172.16.228.64 k8s-debian-1 kubeworker-1 vm064$'
+    line: 172.16.228.64 k8s-debian-1 kubeworker-1 vm064
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    insertbefore: '^127.0.0.1       localhost'
+    regexp: '^172.16.228.81 k8s-debian-2 kubeworker-2 vm81$'
+    line: 172.16.228.81 k8s-debian-2 kubeworker-2 vm081
+
 - name: Install openssl
   ansible.builtin.apt: 
     name: 

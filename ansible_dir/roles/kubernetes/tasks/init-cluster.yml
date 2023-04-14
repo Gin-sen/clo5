@@ -50,7 +50,7 @@
 
 
     - name: Init kubernetes cluster
-      ansible.builtin.shell: kubeadm init --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
+      ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
 
     
     - name: Create ~/.kube directory

@@ -139,11 +139,11 @@ temp = ""
     returns = "application/vnd.oci.image.layer.v1.tar+gzip"
 
 [timeouts]
-  "io.containerd.timeout.bolt.open" = "0s"
-  "io.containerd.timeout.shim.cleanup" = "5s"
-  "io.containerd.timeout.shim.load" = "5s"
-  "io.containerd.timeout.shim.shutdown" = "3s"
-  "io.containerd.timeout.task.state" = "2s"
+  "io.containerd.timeout.bolt.open" = "5s"
+  "io.containerd.timeout.shim.cleanup" = "10s"
+  "io.containerd.timeout.shim.load" = "10s"
+  "io.containerd.timeout.shim.shutdown" = "5s"
+  "io.containerd.timeout.task.state" = "3s"
 
 [ttrpc]
   address = ""
