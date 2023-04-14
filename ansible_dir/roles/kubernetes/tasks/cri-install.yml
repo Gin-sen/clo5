@@ -24,29 +24,29 @@
 #     group: root
 #     mode: "0644"
 
-- name: Create CNI directory
-  ansible.builtin.file: 
-    name: /opt/cni/bin
-    state: directory
+# - name: Create CNI directory
+#   ansible.builtin.file: 
+#     name: /opt/cni/bin
+#     state: directory
 
-- name: Unarchive CNI plugins
-  ansible.builtin.unarchive:
-    src:  "{{ cni_plugins_url }}"
-    dest: /opt/cni/bin
-    remote_src: yes
+# - name: Unarchive CNI plugins
+#   ansible.builtin.unarchive:
+#     src:  "{{ cni_plugins_url }}"
+#     dest: /opt/cni/bin
+#     remote_src: yes
 
 - name: Create containerd directory
   ansible.builtin.file: 
     name: /etc/containerd
     state: directory
 
-- name: Template containerd CNI plugin config file
-  template:
-    src: cni-10-containerd-net.conflist.j2
-    dest: /etc/cni/net.d/10-containerd-net.conflist
-    owner: root
-    group: root
-    mode: "0644"
+# - name: Template containerd CNI plugin config file
+#   template:
+#     src: cni-10-containerd-net.conflist.j2
+#     dest: /etc/cni/net.d/10-containerd-net.conflist
+#     owner: root
+#     group: root
+#     mode: "0644"
 
 - name: Template containerd config file
   template:

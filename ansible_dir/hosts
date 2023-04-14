@@ -6,11 +6,11 @@ kubeworkers
 kubemaster
 
 [kubemaster]
-172.16.228.15
+172.16.228.15 remote_ip_hostname=k8s-debian-0
 
 [kubeworkers]
-172.16.228.64
-172.16.228.81
+172.16.228.64 remote_ip_hostname=k8s-debian-1
+172.16.228.81 remote_ip_hostname=k8s-debian-2
 
 [kubemaster:vars]
 ansible_ssh_user=places_m

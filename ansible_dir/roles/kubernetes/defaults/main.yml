@@ -3,7 +3,7 @@
 
 disable_firewall: no
 
-kubernetes_version: 1.26.0
+kubernetes_version: 1.25.0
 hold_kube_version: false
 kubernetes_cri: containerd
 kubernetes_cni: flannel

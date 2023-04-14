@@ -40,30 +40,50 @@
     - set_fact:
         apiserver_sans: "{{ (sans_base + [kubernetes_ip_address] ) | unique }}"
 
-    - name: render kubeadm-init.yml
-      ansible.builtin.template:
-        src: kubeadm-init.yml.j2
-        dest: /root/kubeadm-init.yml
+    # - name: render kubeadm-init.yml
+    #   ansible.builtin.template:
+    #     src: kubeadm-init.yml.j2
+    #     dest: /root/kubeadm-init.yml
 
     - set_fact:
-        kubeadm_extra_args: "--upload-certs"
+        kubeadm_extra_args: --cri-socket="{{ cri_socket_path }}"
 
 
+    # - name: Init kubernetes cluster
+    #   ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
     - name: Init kubernetes cluster
-      ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
+      ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
 
     
     - name: Create ~/.kube directory
       ansible.builtin.file: 
-        name: ~/.kube
+        name: "{{ item }}"
         state: directory
-    
+      loop:
+        - "/home/{{ ansible_ssh_user }}/.kube"
+        - "/root/.kube"
+
+
+    - name: Make sure /etc/kubernetes/admin.conf has host
+      ansible.builtin.replace:
+        path: /etc/kubernetes/admin.conf
+        regexp: '(\s+)server: https://172\.16\.228\.15:6443(\s+.*)?$'
+        line: '\1server: https://172.16.228.15:6443\2'
+
     - name: Copy .kube/config file
       ansible.builtin.copy: 
         src: /etc/kubernetes/admin.conf
-        dest: ~/.kube/config
+        dest: "{{ item }}"
         remote_src: yes
-        mode: 600
+        mode: '0664'
+      loop:
+        - "/home/{{ ansible_ssh_user }}/.kube/config"
+        - "/root/.kube/config"
+
+    - name: Wait for Kubernetes pods to start
+      ansible.builtin.pause:
+        prompt: "Make sure kube-system pods are running (kubectl get pods -n kube-system)"
+
 
     - include_tasks: 
         file: cni-install.yml
