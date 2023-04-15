@@ -6,11 +6,11 @@ kubeworkers
 kubemaster
 
 [kubemaster]
-172.16.228.15 remote_ip_hostname=k8s-debian-0
+172.16.228.15 remote_ip_hostname=vm015.etna.local
 
 [kubeworkers]
-172.16.228.64 remote_ip_hostname=k8s-debian-1
-172.16.228.81 remote_ip_hostname=k8s-debian-2
+172.16.228.64 remote_ip_hostname=vm064.etna.local
+172.16.228.81 remote_ip_hostname=vm081.etna.local
 
 [kubemaster:vars]
 ansible_ssh_user=places_m

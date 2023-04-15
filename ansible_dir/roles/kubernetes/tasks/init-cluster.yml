@@ -52,7 +52,8 @@
     # - name: Init kubernetes cluster
     #   ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
     - name: Init kubernetes cluster
-      ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
+      ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
+      # ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
 
     
     - name: Create ~/.kube directory
@@ -66,9 +67,25 @@
 
     - name: Make sure /etc/kubernetes/admin.conf has host
       ansible.builtin.replace:
-        path: /etc/kubernetes/admin.conf
+        path: "{{ item }}"
         regexp: '(\s+)server: https://172\.16\.228\.15:6443(\s+.*)?$'
-        line: '\1server: https://{{ remote_ip_hostname }}:6443\2'
+        replace: '\1server: https://{{ remote_ip_hostname }}:6443\2'
+      loop:
+        - /etc/kubernetes/admin.conf
+        - /etc/kubernetes/kubelet.conf
+        - /etc/kubernetes/scheduler.conf
+        - /etc/kubernetes/controller-manager.conf
+
+    - name: Make sure /etc/kubernetes/admin.conf has host
+      ansible.builtin.replace:
+        path: "{{ item }}"
+        regexp: '(\s+)https://172\.16\.228\.15:(\d+)(\s+.*)?$'
+        replace: '\1https://{{ remote_ip_hostname }}:\2\3'
+      loop:
+        - /etc/kubernetes/admin.conf
+        - /etc/kubernetes/kubelet.conf
+        - /etc/kubernetes/scheduler.conf
+        - /etc/kubernetes/controller-manager.conf
 
     - name: Copy .kube/config file
       ansible.builtin.copy: 
@@ -79,11 +96,24 @@
       loop:
         - "/home/{{ ansible_ssh_user }}/.kube/config"
         - "/root/.kube/config"
+    - name: restart containerd kubelet
+      ansible.builtin.systemd:
+        name: '{{ item }}'
+        state: restarted
+      loop:
+        - containerd
+        - kubelet
 
     - name: Wait for Kubernetes pods to start
       ansible.builtin.pause:
-        prompt: "Make sure kube-system pods are running (kubectl get pods -n kube-system)"
+        prompt: "Make sure kube-system pods are running before taint (kubectl get pods -n kube-system)"
 
+    - name: Remove Taint
+      shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+
+    - name: Wait for Kubernetes pods to start
+      ansible.builtin.pause:
+        prompt: "Make sure kube-system pods are running before Calico install (kubectl get pods -n kube-system)"
 
     - include_tasks: 
         file: cni-install.yml

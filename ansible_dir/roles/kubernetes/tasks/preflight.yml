@@ -1,25 +1,40 @@
 ---
+
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
-    insertbefore: '^127.0.0.1       localhost'
-    regexp: '^172.16.228.15 k8s-debian-0 kubemaster vm015$'
-    line: 172.16.228.15 k8s-debian-0 kubemaster vm015
+    insertbefore: '127.0.0.1       localhost'
+    regexp: '^172.16.228.15 vm015.etna.local$'
+    line: 172.16.228.15 vm015.etna.local
+
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
-    insertbefore: '^127.0.0.1       localhost'
-    regexp: '^172.16.228.64 k8s-debian-1 kubeworker-1 vm064$'
-    line: 172.16.228.64 k8s-debian-1 kubeworker-1 vm064
+    insertbefore: '127.0.0.1       localhost'
+    regexp: '^172.16.228.64 vm064.etna.local$'
+    line: 172.16.228.64 vm064.etna.local
+
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
-    insertbefore: '^127.0.0.1       localhost'
-    regexp: '^172.16.228.81 k8s-debian-2 kubeworker-2 vm81$'
-    line: 172.16.228.81 k8s-debian-2 kubeworker-2 vm081
+    insertbefore: '127.0.0.1       localhost'
+    regexp: '^172.16.228.81 vm081.etna.local$'
+    line: 172.16.228.81 vm081.etna.local
+
+# - name: Stop and Disable firewall
+#   ansible.builtin.systemd:
+#     name: ufw
+#     enabled: false
+#     state: stopped
+
+- name: Stop and Disable AppArmor
+  ansible.builtin.systemd:
+    name: apparmor
+    enabled: false
+    state: stopped
 
 - name: Install openssl
   ansible.builtin.apt: 
@@ -57,12 +72,15 @@
   ansible.builtin.shell: |
     swapoff -a
 
-- name: Disable SWAP in fstab
-  ansible.builtin.replace:
-    path: /etc/fstab
-    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
-    replace: '#\1\2\3swap\4'
-    backup: yes
+- name: Remove swapfile from /etc/fstab
+  mount:
+    name: "{{ item }}"
+    fstype: swap
+    state: absent
+  with_items:
+    - swap
+    - none
+
 
 - name: check iptables version
   ansible.builtin.shell: iptables --version

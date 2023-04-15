@@ -29,3 +29,11 @@
     - kubelet
     - kubeadm
     - kubectl
+
+- name: restart containerd kubelet
+  ansible.builtin.systemd:
+    name: '{{ item }}'
+    state: restarted
+  loop:
+    - containerd
+    - kubelet
