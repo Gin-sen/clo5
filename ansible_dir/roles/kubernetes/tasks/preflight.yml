@@ -1,28 +1,34 @@
 ---
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    regexp: '^127.0.0.1       localhost$'
+    line: 127.0.0.1       localhost {{ remote_ip_hostname }}
 
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
     insertbefore: '127.0.0.1       localhost'
-    regexp: '^172.16.228.15 vm015.etna.local$'
-    line: 172.16.228.15 vm015.etna.local
+    regexp: '^172.16.228.15 vm015.etna.local vm015$'
+    line: 172.16.228.15 vm015.etna.local vm015
 
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
     insertbefore: '127.0.0.1       localhost'
-    regexp: '^172.16.228.64 vm064.etna.local$'
-    line: 172.16.228.64 vm064.etna.local
+    regexp: '^172.16.228.64 vm064.etna.local vm064$'
+    line: 172.16.228.64 vm064.etna.local vm064
 
 - name: Make sure hosts is in /etc/hosts
   ansible.builtin.lineinfile:
     path: /etc/hosts
     state: present
     insertbefore: '127.0.0.1       localhost'
-    regexp: '^172.16.228.81 vm081.etna.local$'
-    line: 172.16.228.81 vm081.etna.local
+    regexp: '^172.16.228.81 vm081.etna.local vm081$'
+    line: 172.16.228.81 vm081.etna.local vm081
 
 # - name: Stop and Disable firewall
 #   ansible.builtin.systemd:
@@ -30,11 +36,11 @@
 #     enabled: false
 #     state: stopped
 
-- name: Stop and Disable AppArmor
-  ansible.builtin.systemd:
-    name: apparmor
-    enabled: false
-    state: stopped
+# - name: Stop and Disable AppArmor
+#   ansible.builtin.systemd:
+#     name: apparmor
+#     enabled: false
+#     state: stopped
 
 - name: Install openssl
   ansible.builtin.apt: 

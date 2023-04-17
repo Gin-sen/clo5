@@ -52,9 +52,9 @@
     # - name: Init kubernetes cluster
     #   ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
     - name: Init kubernetes cluster
-      ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
+      ansible.builtin.shell: kubeadm init --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" > /root/kubeinit.log
       # ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
-
+      register: cluster_init_cmd
     
     - name: Create ~/.kube directory
       ansible.builtin.file: 
@@ -65,27 +65,27 @@
         - "/root/.kube"
 
 
-    - name: Make sure /etc/kubernetes/admin.conf has host
-      ansible.builtin.replace:
-        path: "{{ item }}"
-        regexp: '(\s+)server: https://172\.16\.228\.15:6443(\s+.*)?$'
-        replace: '\1server: https://{{ remote_ip_hostname }}:6443\2'
-      loop:
-        - /etc/kubernetes/admin.conf
-        - /etc/kubernetes/kubelet.conf
-        - /etc/kubernetes/scheduler.conf
-        - /etc/kubernetes/controller-manager.conf
+    # - name: Make sure /etc/kubernetes/admin.conf has host
+    #   ansible.builtin.replace:
+    #     path: "{{ item }}"
+    #     regexp: '(\s+)server: https://172\.16\.228\.15:6443(\s+.*)?$'
+    #     replace: '\1server: https://{{ remote_ip_hostname }}:6443\2'
+    #   loop:
+    #     - /etc/kubernetes/admin.conf
+    #     - /etc/kubernetes/kubelet.conf
+    #     - /etc/kubernetes/scheduler.conf
+    #     - /etc/kubernetes/controller-manager.conf
 
-    - name: Make sure /etc/kubernetes/admin.conf has host
-      ansible.builtin.replace:
-        path: "{{ item }}"
-        regexp: '(\s+)https://172\.16\.228\.15:(\d+)(\s+.*)?$'
-        replace: '\1https://{{ remote_ip_hostname }}:\2\3'
-      loop:
-        - /etc/kubernetes/admin.conf
-        - /etc/kubernetes/kubelet.conf
-        - /etc/kubernetes/scheduler.conf
-        - /etc/kubernetes/controller-manager.conf
+    # - name: Make sure /etc/kubernetes/admin.conf has host
+    #   ansible.builtin.replace:
+    #     path: "{{ item }}"
+    #     regexp: '(\s+)https://172\.16\.228\.15:(\d+)(\s+.*)?$'
+    #     replace: '\1https://{{ remote_ip_hostname }}:\2\3'
+    #   loop:
+    #     - /etc/kubernetes/admin.conf
+    #     - /etc/kubernetes/kubelet.conf
+    #     - /etc/kubernetes/scheduler.conf
+    #     - /etc/kubernetes/controller-manager.conf
 
     - name: Copy .kube/config file
       ansible.builtin.copy: 
@@ -117,6 +117,16 @@
 
     - include_tasks: 
         file: cni-install.yml
+
+    - name: Get the token for joining the worker nodes
+      shell: kubeadm token create  --print-join-command
+      register: kubernetes_join_command
+
+    - debug:
+      msg: "{{ kubernetes_join_command.stdout }}"
+
+    - name: Copy join command to local file.
+      local_action: copy content="{{ kubernetes_join_command.stdout_lines[0] }}" dest="./kubernetes_join_command" mode=0777
 
   when: 
     - kubernetes_init

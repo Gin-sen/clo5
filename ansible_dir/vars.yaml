@@ -25,4 +25,5 @@ sans_base:
   - "localhost"
   - "127.0.0.1"
   - "vm015"
+  - "vm015.etna.local"
   - "172.16.228.15"
