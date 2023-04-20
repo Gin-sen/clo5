@@ -18,3 +18,12 @@
   retries: 90
   delay: 15
 
+- name: Copy Kubeadm join command
+  ansible.builtin.copy:
+    src: ./kubernetes_join_command.sh
+    dest: ~/kubernetes_join_command.sh
+    mode: '0777'
+
+- name: Run Kubeadm join command
+  shell: ~/kubernetes_join_command.sh
+  

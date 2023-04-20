@@ -112,7 +112,23 @@ Si vous ne précisez pas cette variable, le script de création de cluster Kuber
 ````bash
 ansible-playbook infrastructure.yaml -i hosts -e kubernetes_init_host=172.16.228.15
 ````
+kubectl -n kube-system get cm kubeadm-config -o yaml
 
+## Clean stuff (tmp)
+
+sudo iptables -P INPUT ACCEPT && \
+sudo iptables -P OUTPUT ACCEPT && \
+sudo iptables -P FORWARD ACCEPT && \
+sudo iptables -F && \
+sudo iptables -X && \
+sudo iptables -t nat -F && \
+sudo iptables -t nat -X && \
+sudo iptables -t mangle -F && \
+sudo iptables -t mangle -X && \
+
+sudo kubeadm reset -f && \
+sudo rm -r /etc/cni/net.d && \
+sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q)
 
 # Dev
 
