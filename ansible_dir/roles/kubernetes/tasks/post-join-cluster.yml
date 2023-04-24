@@ -1,0 +1,8 @@
+---
+
+
+- name: Remove Taint
+  shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+
+- include_tasks: 
+    file: cni-install.yml

@@ -6,17 +6,97 @@
     state: absent
     purge: true
 
-- name: Install containerd.io
+- name: Remove containerd.io
   ansible.builtin.apt: 
     name: containerd.io
     state: absent
     purge: true
+    autoremove: true
 
-- name: Install containerd.io
-  ansible.builtin.apt: 
-    name: containerd.io
-    state: present
-    update_cache: yes 
+
+- name: Download containerd with checksum url (sha256)
+  ansible.builtin.get_url:
+    url: https://github.com/containerd/containerd/releases/download/v1.7.0/containerd-1.7.0-linux-amd64.tar.gz
+    dest: /tmp/containerd-1.7.0-linux-amd64.tar.gz
+    checksum: sha256:https://github.com/containerd/containerd/releases/download/v1.7.0/containerd-1.7.0-linux-amd64.tar.gz.sha256sum
+
+- name: Untar containerd binaries
+  ansible.builtin.unarchive:
+    src: /tmp/containerd-1.7.0-linux-amd64.tar.gz
+    dest: /usr/local
+    remote_src: yes
+
+- name: Download containerd.service
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/containerd/containerd/main/containerd.service 
+    dest: /etc/systemd/system/containerd.service
+  notify: Start containerd
+
+
+- name: Download runc
+  ansible.builtin.get_url:
+    url: https://github.com/opencontainers/runc/releases/download/v1.1.6/runc.amd64
+    dest: /tmp/runc.amd64
+
+- name: Install runc
+  ansible.builtin.shell: install -m 755 /tmp/runc.amd64 /usr/local/sbin/runc
+
+- name: Create /opt/cni/bin directory
+  ansible.builtin.file: 
+    name: /opt/cni/bin
+    state: directory
+
+- name: Download CNI plugins
+  ansible.builtin.get_url:
+    url: https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
+    dest: /tmp/cni-plugins-linux-amd64-v1.2.0.tgz
+    checksum: sha256:https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz.sha256
+  notify: Start containerd
+
+- name: Untar CNI plugins
+  ansible.builtin.unarchive:
+    src: /tmp/cni-plugins-linux-amd64-v1.2.0.tgz
+    dest: /opt/cni/bin
+    remote_src: yes
+
+- name: Create containerd directory
+  ansible.builtin.file: 
+    name: /etc/containerd
+    state: directory
+
+- name: Template containerd config file
+  template:
+    src: containerd-config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create CNI plugin conf directory
+  ansible.builtin.file: 
+    name: /etc/cni/net.d
+    state: directory
+
+- name: Template containerd CNI plugin config file
+  template:
+    src: cni-10-containerd-net.conflist.j2
+    dest: /etc/cni/net.d/10-containerd-net.conflist
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: start and enable containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+    daemon_reload: true
+
+# - name: Install containerd.io from apt
+#   ansible.builtin.apt: 
+#     name: containerd.io
+#     state: present
+#     update_cache: yes 
 
 # - name: Create local systemd directory
 #   ansible.builtin.file: 
@@ -42,10 +122,10 @@
 #     dest: /opt/cni/bin
 #     remote_src: yes
 
-- name: Create containerd directory
-  ansible.builtin.file: 
-    name: /etc/containerd
-    state: directory
+# - name: Create containerd directory
+#   ansible.builtin.file: 
+#     name: /etc/containerd
+#     state: directory
 
 # - name: Template containerd CNI plugin config file
 #   template:
@@ -55,22 +135,23 @@
 #     group: root
 #     mode: "0644"
 
-- name: Template containerd config file
-  template:
-    src: containerd-config.toml.j2
-    dest: /etc/containerd/config.toml
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - reload containerd
+# - name: Template containerd config file
+#   template:
+#     src: containerd-config.toml.j2
+#     dest: /etc/containerd/config.toml
+#     owner: root
+#     group: root
+#     mode: "0644"
+#   notify:
+#     - reload containerd
 
-- name: start and enable containerd
-  ansible.builtin.systemd:
-    name: containerd
-    state: restarted
-    enabled: yes
-    daemon_reload: true
+# - name: start and enable containerd
+#   ansible.builtin.systemd:
+#     name: containerd
+#     state: restarted
+#     enabled: yes
+#     daemon_reload: true
+
 
 - name: Force all notified handlers to run now
   meta: flush_handlers

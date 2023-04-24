@@ -51,3 +51,12 @@
   tags: kubejoin
   when:
     - inventory_hostname in groups['kubeworkers']
+
+
+- include_tasks: 
+    file: post-join-cluster.yml
+    apply:
+      tags: postkubejoin
+  tags: postkubejoin
+  when:
+    - inventory_hostname in groups['kubemaster']

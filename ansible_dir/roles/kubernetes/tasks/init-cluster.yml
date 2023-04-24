@@ -52,7 +52,7 @@
     # - name: Init kubernetes cluster
     #   ansible.builtin.shell: kubeadm init -v=5 --config /root/kubeadm-init.yml {{ kubeadm_extra_args }} > /root/kubeinit.log
     - name: Init kubernetes cluster
-      ansible.builtin.shell: kubeadm init --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" > /root/kubeinit.log
+      ansible.builtin.shell: "kubeadm init --apiserver-advertise-address={{ kubernetes_ip_address }} --control-plane-endpoint={{ kubernetes_ip_address }}  --upload-certs  --kubernetes-version={{ kubernetes_version }} > /root/kubeinit.log"
       # ansible.builtin.shell: kubeadm init -v=5 --apiserver-advertise-address="{{ kubernetes_ip_address }}" --apiserver-cert-extra-sans="{{ remote_ip_hostname }}" --apiserver-cert-extra-sans="{{ kubernetes_ip_address }}"  --node-name="{{ remote_ip_hostname }}" --pod-network-cidr="{{ kubernetes_pod_subnet }}" {{ kubeadm_extra_args }} > /root/kubeinit.log
       register: cluster_init_cmd
     
@@ -96,13 +96,14 @@
       loop:
         - "/home/{{ ansible_ssh_user }}/.kube/config"
         - "/root/.kube/config"
-    - name: restart containerd kubelet
-      ansible.builtin.systemd:
-        name: '{{ item }}'
-        state: restarted
-      loop:
-        - containerd
-        - kubelet
+        
+    # - name: restart containerd kubelet
+    #   ansible.builtin.systemd:
+    #     name: '{{ item }}'
+    #     state: restarted
+    #   loop:
+    #     - containerd
+    #     - kubelet
 
     - name: Wait for Kubernetes pods to start
       ansible.builtin.pause:
@@ -117,8 +118,8 @@
         prompt: "Make sure kube-system pods are running before Calico install (kubectl get pods -n kube-system)"
         seconds: 5
 
-    - include_tasks: 
-        file: cni-install.yml
+    # - include_tasks: 
+    #     file: cni-install.yml
 
     - name: Get the token for joining the worker nodes
       shell: kubeadm token create  --print-join-command

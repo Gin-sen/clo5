@@ -1,1 +1,1 @@
-kubeadm join 172.16.228.15:6443 --token b1qnwd.gkzqz5mfdr33zcvx --discovery-token-ca-cert-hash sha256:8aafcbe7c57819f5dd0ecbc186698bfabe712300d18d8c33dde0bb519ae6232a 
+kubeadm join 172.16.228.15:6443 --token r8uit5.84y2483p3b4c9xv9 --discovery-token-ca-cert-hash sha256:f120f09528c8599363e197318d20bcc19fd025ba5c68ec62d0f05d20c8fb0c0d 

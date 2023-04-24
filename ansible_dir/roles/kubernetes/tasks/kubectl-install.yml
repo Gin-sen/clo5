@@ -11,6 +11,7 @@
       - kubectl
     state: absent
     update_cache: yes
+    purge: true
 
 - name: Install kubelet kubeadm kubectl
   ansible.builtin.apt: 
