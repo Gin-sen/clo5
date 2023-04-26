@@ -120,6 +120,8 @@ sudo iptables -D KUBE-FIREWALL 1
 
 ## Clean stuff (tmp)
 
+```bash
+sudo kubeadm reset -f && \
 sudo iptables -P INPUT ACCEPT && \
 sudo iptables -P OUTPUT ACCEPT && \
 sudo iptables -P FORWARD ACCEPT && \
@@ -129,14 +131,13 @@ sudo iptables -t nat -F && \
 sudo iptables -t nat -X && \
 sudo iptables -t mangle -F && \
 sudo iptables -t mangle -X && \
-sudo iptables -F && sudo iptables -t nat -F && sudo iptables -t mangle -F && sudo iptables -X && \
-sudo kubeadm reset -f && \
-sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q) && \
-sudo systemctl stop kubelet
-sudo systemctl stop containerd
+# sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q) && \
+sudo systemctl stop kubelet && \
+sudo systemctl stop containerd && \
 sudo rm -r /etc/cni/net.d && \
 sudo rm -r /opt/cni/bin && \
 sudo reboot now
+```
 
 
 # Dev
