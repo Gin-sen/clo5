@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  bookingdb:
+    image: postgres:13-alpine
+#    restart: always
+    environment:
+      POSTGRES_USER: "Bobby"
+      POSTGRES_PASSWORD: "BR"
+      POSTGRES_DB: "bookingDb"
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbDataBooking:/var/lib/postgresql/data
+
+  hoteldb:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: "Bobby"
+      POSTGRES_PASSWORD: "BR"
+      POSTGRES_DB: "hotelDb"
+    volumes:
+      - dbDataHotel:/var/lib/postgresql/data
+    ports:
+      - "5444:5432"
+
+  adminer:
+    image: adminer:latest
+#    restart: always
+    ports:
+      - "8080:8080"
+
+  bookingapi:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        SOURCEFOLDER: booking
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 --reload
+    environment:
+      - DATABASE_URL=postgresql://Bobby:BR@bookingdb:5432/bookingDb
+    ports:
+      - "8001:8000"
+    depends_on:
+      - bookingdb
+
+  hotelapi:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      args:
+        SOURCEFOLDER: booking
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4 --reload
+    environment:
+      - DATABASE_URL=postgresql://Bobby:BR@hoteldb:5432/hotelDb
+    ports:
+      - "8002:8000"
+    depends_on:
+      - hoteldb
+
+volumes:
+  dbDataBooking:
+  dbDataHotel:
