@@ -1,10 +1,11 @@
+import datetime as datetime
 from fastapi import FastAPI
 import psycopg2
 # FIXME replace jsonify -> jsonable_encoder
 # FIXME replace request -> BaseModel
 from flask import jsonify, request
+from pydantic import BaseModel
 
-app = FastAPI()
 
 mydb = psycopg2.connect(
     host="host.docker.internal",
@@ -19,54 +20,50 @@ my_cursor = mydb.cursor()
 # -------------- Class -------------- #
 
 # User class
-class User:
-    def __init__(self, firstname, lastname, id, age, phone, password, email, created_date, update_date):
-        self.firstname = firstname
-        self.lastname = lastname
-        self.id = id
-        self.age = age
-        self.phone = phone
-        self.password = password
-        self.email = email
-        self.created_date = created_date
-        self.update_date = update_date
+class User(BaseModel):
+    firstname = str
+    lastname = str
+    id = id
+    age = int
+    phone = int
+    password = str
+    email = str
+    created_date = datetime.time
+    update_date = datetime.time
+
+
+class Payment(BaseModel):
+    id = id
+    price = int
+    promo = str
+    total = int
+    created_date = datetime.time
+    update_date = datetime.time
 
 
 # Booking class
-class Booking:
-    def __init__(self, id, username, nights, reservation_number, numbers_peoples, users_id, payements_id, created_date,
-                 update_date):
-        self.id = id
-        self.username = username
-        self.nights = nights
-        self.reservation_number = reservation_number
-        self.numbers_peoples = numbers_peoples
-        self.users_id = users_id
-        self.payements_id = payements_id
-        self.created_date = created_date
-        self.update_date = update_date
+class Booking(BaseModel):
+    id = id
+    username = str
+    nights = int
+    reservation_number = int
+    numbers_peoples = int
+    users_id = User.id
+    payements_id = Payment.id
+    created_date = datetime.time
+    update_date = datetime.time
 
 
 # Payment class
-class AdditionalService:
-    def __init__(self, id, name, price, bookings_id, bookings_users_id):
-        self.id = id
-        self.name = name
-        self.price = price
-        self.bookings_id = bookings_id
-        self.bookings_users_id = bookings_users_id
+class AdditionalService(BaseModel):
+    id = id
+    name = str
+    price = str
+    bookings_id = Booking.id
+    bookings_users_id = Booking.users_id
 
 
-# User class
-class Payment:
-    def __init__(self, id, price, promo, total, created_date, update_date):
-        self.id = id
-        self.price = price
-        self.promo = promo
-        self.total = total
-        self.created_date = created_date
-        self.update_date = update_date
-
+app = FastAPI()
 
 # -------------- API roots -------------- #
 
