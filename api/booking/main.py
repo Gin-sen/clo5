@@ -7,7 +7,7 @@ from flask import jsonify, request
 app = FastAPI()
 
 mydb = psycopg2.connect(
-    host="localhost",
+    host="host.docker.internal",
     user="Bobby",
     password="BR",
     database="bookingDb"
