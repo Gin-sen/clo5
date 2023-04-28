@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-import datetime as datetime
-=======
->>>>>>> Feat: Archi dev - Docker - api - requirements
 from fastapi import FastAPI
 import psycopg2
 # FIXME replace jsonify -> jsonable_encoder
@@ -18,8 +14,12 @@ mydb = psycopg2.connect(
 app = FastAPI()
 
 mydb = psycopg2.connect(
+<<<<<<< HEAD
     host="localhost",
 >>>>>>> Feat: Archi dev - Docker - api - requirements
+=======
+    host="host.docker.internal",
+>>>>>>> Fix: work with local db
     user="Bobby",
     password="BR",
     database="bookingDb"
