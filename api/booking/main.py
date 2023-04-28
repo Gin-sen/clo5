@@ -9,17 +9,6 @@ from pydantic import BaseModel
 
 mydb = psycopg2.connect(
     host="host.docker.internal",
-=======
-
-app = FastAPI()
-
-mydb = psycopg2.connect(
-<<<<<<< HEAD
-    host="localhost",
->>>>>>> Feat: Archi dev - Docker - api - requirements
-=======
-    host="host.docker.internal",
->>>>>>> Fix: work with local db
     user="Bobby",
     password="BR",
     database="bookingDb"
