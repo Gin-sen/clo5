@@ -1,14 +1,25 @@
+<<<<<<< HEAD
 import datetime as datetime
+=======
+>>>>>>> Feat: Archi dev - Docker - api - requirements
 from fastapi import FastAPI
 import psycopg2
 # FIXME replace jsonify -> jsonable_encoder
 # FIXME replace request -> BaseModel
 from flask import jsonify, request
+<<<<<<< HEAD
 from pydantic import BaseModel
 
 
 mydb = psycopg2.connect(
     host="host.docker.internal",
+=======
+
+app = FastAPI()
+
+mydb = psycopg2.connect(
+    host="localhost",
+>>>>>>> Feat: Archi dev - Docker - api - requirements
     user="Bobby",
     password="BR",
     database="bookingDb"
@@ -20,6 +31,7 @@ my_cursor = mydb.cursor()
 # -------------- Class -------------- #
 
 # User class
+<<<<<<< HEAD
 class User(BaseModel):
     firstname = str
     lastname = str
@@ -64,6 +76,56 @@ class AdditionalService(BaseModel):
 
 
 app = FastAPI()
+=======
+class User:
+    def __init__(self, firstname, lastname, id, age, phone, password, email, created_date, update_date):
+        self.firstname = firstname
+        self.lastname = lastname
+        self.id = id
+        self.age = age
+        self.phone = phone
+        self.password = password
+        self.email = email
+        self.created_date = created_date
+        self.update_date = update_date
+
+
+# Booking class
+class Booking:
+    def __init__(self, id, username, nights, reservation_number, numbers_peoples, users_id, payements_id, created_date,
+                 update_date):
+        self.id = id
+        self.username = username
+        self.nights = nights
+        self.reservation_number = reservation_number
+        self.numbers_peoples = numbers_peoples
+        self.users_id = users_id
+        self.payements_id = payements_id
+        self.created_date = created_date
+        self.update_date = update_date
+
+
+# Payment class
+class AdditionalService:
+    def __init__(self, id, name, price, bookings_id, bookings_users_id):
+        self.id = id
+        self.name = name
+        self.price = price
+        self.bookings_id = bookings_id
+        self.bookings_users_id = bookings_users_id
+
+
+# User class
+class Payment:
+    def __init__(self, id, price, promo, total, created_date, update_date):
+        self.id = id
+        self.price = price
+        self.promo = promo
+        self.total = total
+        self.created_date = created_date
+        self.update_date = update_date
+
+>>>>>>> Feat: Archi dev - Docker - api - requirements
 
 # -------------- API roots -------------- #
 
