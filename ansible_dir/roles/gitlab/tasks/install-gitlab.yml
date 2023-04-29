@@ -1,22 +1,56 @@
 ---
 
 - name: check if gitlab already installed
-  stat: path=/usr/bin/gitlab-ctl
-  register: gitlab_file
+  apt:
+    name: 
+      - curl
+      - openssh-server
+      - ca-certificates
+      - perl
+    state: present
+    update_cache: yes
 
+- name: Set Postfix option hostname
+  debconf: 
+    name: postifx 
+    question: "postfix/mailname" 
+    value: "sandbox" 
+    vtype: "string"
+
+- name: Set Postfix option type as internet site
+  debconf: 
+    name: postfix 
+    question: "postfix/main_mailer_type" 
+    value: "'Internet Site'" 
+    vtype: "string"
+
+- name: install postfix
+  apt: 
+    name: postfix
+    state: present
 
 - name: Download GitLab repository installation script.
   get_url:
     url: "{{ install_gitlab_url }}"
     dest: /tmp/gitlab_install.sh
-  when: not gitlab_file.stat.exists
 
 - name: install repo
   command: bash /tmp/gitlab_install.sh
-  when: not gitlab_file.stat.exists
 
 - name: install gitlab
+  environment: 
+    EXTERNAL_URL: "{{ ext_gitlab_url }}"
   package:
     name: "{{ gitlab_package }}"
     state: present
-  when: not gitlab_file.stat.exists
+
+- name: Get pip 
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+
+- name: Run get-pip.py
+  shell: python3 /tmp/get-pip.py
+
+- name: Run pip install python-gitlab
+  shell: python3 -m pip install python-gitlab

@@ -1,5 +1,10 @@
 ---
 # tasks file for roles/gitlab
 
-  - include_tasks: install-gitlab.yml
-  - include_tasks: configure-gitlab.yml
+- include_tasks: install-gitlab.yml
+- include_tasks: configure-gitlab.yml
+- include_tasks:
+    file: admin-users.yml
+    apply:
+      tags: helm
+  tags: admin

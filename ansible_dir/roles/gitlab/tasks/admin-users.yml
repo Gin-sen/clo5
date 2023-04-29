@@ -1,0 +1,43 @@
+---
+
+- name: include vaulted admin variables
+  include_vars: ../vars/admin.yml
+
+- name: Read /etc/gitlab/initial_root_password content
+  shell: 'cat /etc/gitlab/initial_root_password | grep "Password: " | sed -r "s/Password: (.+)$/\1/"'
+  register: initial_root_password
+
+- debug: 
+    msg: "{{ initial_root_password.stdout }}"
+
+- name: "Create first admin GitLab User"
+  community.general.gitlab_user:
+    api_url: "{{ gitlab_ip }}"
+    # api_token: test
+    api_username: root
+    api_password: "{{ initial_root_password.stdout }}"
+    name: rafina_d
+    username: rafina_d
+    email: rafina_d@etna-alternance.net
+    password: "{{ vault_rafina_d_password }}"
+    state: present
+    access_level: owner
+    isadmin: true
+    confirm: false
+
+
+- name: "Create second admin GitLab User"
+  community.general.gitlab_user:
+    api_url: "{{ gitlab_ip }}"
+    # api_token: test
+    api_username: root
+    api_password: "{{ initial_root_password.stdout }}"
+    name: rinaz_a
+    username: rinaz_a
+    email: rinaz_a@etna-alternance.net
+    password: "{{ vault_rinaz_a_password }}"
+    state: present
+    access_level: owner
+    isadmin: true
+    confirm: false
+    

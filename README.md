@@ -22,9 +22,9 @@ ssh student@172.16.228.15
 
 Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour Windows):
 ```txt
-172.16.228.15 k8s-debian-0 kubemaster vm015
-172.16.228.64 k8s-debian-1 kubeworker-1 vm64
-172.16.228.81 k8s-debian-2 kubeworker-2 vm81
+172.16.228.15 gitlabserver.clo5.com vm015
+172.16.228.64 vm064
+172.16.228.81 vm081
 ```
 
 
@@ -82,7 +82,7 @@ sudo apt-get install -y sshpass
 
 [En cours]
 ```bash
-ansible-vault
+ansible-vault -v encrypt roles/gitlab/vars/admin.yml
 ```
 
 
@@ -97,6 +97,8 @@ Prérequis:
 ansible-galaxy collection install kubernetes.core
 ansible-galaxy collection install ansible.utils
 ansible-galaxy collection install ansible.posix
+ansible-galaxy collection install community.crypto
+ansible-galaxy collection install community.general
 ```
 
 #### Usage standard
@@ -138,6 +140,10 @@ sudo rm -r /etc/cni/net.d && \
 sudo rm -r /opt/cni/bin && \
 sudo reboot now
 ```
+
+## Utiliser `kubectl`
+
+` kubectl --kubeconfig=kubeconfig.yaml get nodes`
 
 
 # Dev

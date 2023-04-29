@@ -1,0 +1,4 @@
+---
+vault_gitlab_token: api_token
+vault_rafina_d_password: password
+vault_rinaz_a_password: password

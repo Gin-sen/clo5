@@ -1,3 +1,5 @@
+cryptography
 ansible
 netaddr
 kubernetes
+python-gitlab
