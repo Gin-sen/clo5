@@ -30,18 +30,6 @@
 #     regexp: '^172.16.228.81 vm081.etna.local vm081$'
 #     line: 172.16.228.81 vm081.etna.local vm081
 
-# - name: Stop and Disable firewall
-#   ansible.builtin.systemd:
-#     name: ufw
-#     enabled: false
-#     state: stopped
-
-# - name: Stop and Disable AppArmor
-#   ansible.builtin.systemd:
-#     name: apparmor
-#     enabled: false
-#     state: stopped
-
 - name: Install openssl
   ansible.builtin.apt: 
     name: 
