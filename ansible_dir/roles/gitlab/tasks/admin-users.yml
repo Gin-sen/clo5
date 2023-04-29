@@ -13,7 +13,6 @@
 - name: "Create first admin GitLab User"
   community.general.gitlab_user:
     api_url: "{{ gitlab_ip }}"
-    # api_token: test
     api_username: root
     api_password: "{{ initial_root_password.stdout }}"
     name: rafina_d
@@ -29,7 +28,6 @@
 - name: "Create second admin GitLab User"
   community.general.gitlab_user:
     api_url: "{{ gitlab_ip }}"
-    # api_token: test
     api_username: root
     api_password: "{{ initial_root_password.stdout }}"
     name: rinaz_a
