@@ -18,14 +18,23 @@ ssh student@172.16.228.81
 ssh student@172.16.228.15
 ```
 
+Login / mdp étudiant [Gitlab](http://gitlab.example.local/) :
+<login ETNA> / Pass123*
+
+Login / mdp prof [Gitlab](http://gitlab.example.local/) :
+- <login ETNA> / P@SSW0RD
+
+
 ## Setup
 
 Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour Windows):
 ```txt
-172.16.228.15 gitlabserver.clo5.com vm015
-172.16.228.64 vm064
-172.16.228.81 registry.example.local vm081
+172.16.228.64 chart.example.local
+172.16.228.15 gitlab.example.local
+172.16.228.64 registry.example.local
 ```
+
+
 
 
 ### Installation de Python
