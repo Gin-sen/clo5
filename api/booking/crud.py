@@ -3,33 +3,34 @@ from sqlalchemy.orm import Session
 from . import models, schemas
 
 
-def get_hotel(db: Session, hotel_id: int):
-    return db.query(models.Hotel).filter(models.Hotel.id == hotel_id).first()
+def get_user(db: Session, user_id: int):
+    return db.query(models.User).filter(models.User.id == user_id).first()
 
 
-def get_hotel_by_name(db: Session, name: str):
-    return db.query(models.Hotel).filter(models.Hotel.name == name).first()
+def get_booking(db: Session, booking_id: int):
+    return db.query(models.Booking).filter(models.Booking.id == booking_id).first()
 
 
-def get_hotels(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Hotel).offset(skip).limit(limit).all()
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
 
 
-def create_hotel(db: Session, hotel: schemas.HotelCreate):
-    db_hotel = models.Hotel(name=hotel.name, address=hotel.address)
-    db.add(db_hotel)
+def get_users(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.User).offset(skip).limit(limit).all()
+
+
+def create_user(db: Session, user: schemas.UserCreate):
+    fake_hashed_password = user.password + "notreallyhashed"
+    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
+    db.add(db_user)
     db.commit()
-    db.refresh(db_hotel)
-    return db_hotel
+    db.refresh(db_user)
+    return db_user
 
 
-def get_rooms(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Room).offset(skip).limit(limit).all()
-
-
-def create_hotel_room(db: Session, room: schemas.RoomCreate, hotel_id: int):
-    db_room = models.Room(**room.dict(), owner_id=hotel_id)
-    db.add(db_room)
+def create_user_booking(db: Session, booking: schemas.BookingCreate, user_id: int):
+    db_item = models.Booking(**booking.dict(), owner_id=user_id)
+    db.add(db_item)
     db.commit()
-    db.refresh(db_room)
-    return db_room
+    db.refresh(db_item)
+    return db_item

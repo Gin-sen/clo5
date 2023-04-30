@@ -16,30 +16,10 @@ class User:
     update_date = datetime
 
 
-class RoomCreate(RoomBase):
-    pass
-
-
-class Room(RoomBase):
-    id: int
-    owner_id: int
-
-    class Config:
-        orm_mode = True
-
-
-class HotelBase(BaseModel):
-    name: str
-
-
-class HotelCreate(HotelBase):
-    address: str
-
-
-class Hotel(HotelBase):
+class Booking():
     id: int
     is_active: bool
-    rooms: list[Room] = []
+    rooms: list = []
 
     class Config:
         orm_mode = True
