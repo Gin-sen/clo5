@@ -28,6 +28,7 @@ services:
   #   build:
   #     dockerfile: Dockerfile
   #     context: .
+  #     target: final
   #     args:
   #       SOURCEFOLDER: booking
   #   environment:
