@@ -6,7 +6,7 @@ db_host = getenv("DB_HOST", "localhost")
 db_port = getenv("DB_PORT", "5432")
 db_user = getenv("DB_USER", "Bobby")
 db_pass = getenv("DB_PASS", "BR")
-db_name = getenv("DB_NAME", "hotel-db")
+db_name = getenv("DB_NAME", "booking-db")
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 SQLALCHEMY_DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
