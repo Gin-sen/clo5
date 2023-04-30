@@ -1,15 +1,22 @@
 ---
 
-# - hosts: kubernetes
-#   become: yes
-#   roles: 
-#     - roles/kubernetes
-#   vars_files:
-#     - vars.yaml
-
 - hosts: gitlab
   become: yes
   roles: 
     - roles/gitlab
+  vars_files:
+    - vars.yaml
+
+- hosts: kubernetes
+  become: yes
+  roles: 
+    - roles/kubernetes
+  vars_files:
+    - vars.yaml
+
+- hosts: docker_registry
+  become: yes
+  roles: 
+    - roles/docker_registry
   vars_files:
     - vars.yaml

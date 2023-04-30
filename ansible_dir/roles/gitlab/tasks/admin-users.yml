@@ -39,3 +39,22 @@
     isadmin: true
     confirm: false
     
+- name: "Create clo5 GitLab User"
+  community.general.gitlab_user:
+    api_url: "{{ gitlab_ip }}"
+    api_username: root
+    api_password: "{{ initial_root_password.stdout }}"
+    name: "{{ item }}"
+    username: "{{ item }}"
+    email: "{{ item }}@etna-alternance.net"
+    password: "Pass123*"
+    state: present
+    access_level: owner
+    isadmin: true
+    confirm: false
+  loop:
+    - places_m
+    - deret_r
+    - houdeck_c
+    - mecher_a
+    

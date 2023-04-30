@@ -34,6 +34,8 @@
   ansible.builtin.apt: 
     name: 
       - openssl
+      - open-iscsi
+      - nfs-common
     state: present
 
 - name: Disable SWAP
@@ -48,6 +50,9 @@
   with_items:
     - swap
     - none
+
+- name: load iscsi_tcp kernel module
+  ansible.builtin.command: modprobe iscsi_tcp
 
 - name: load overlay kernel module
   ansible.builtin.command: modprobe overlay

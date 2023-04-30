@@ -24,7 +24,7 @@ Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour
 ```txt
 172.16.228.15 gitlabserver.clo5.com vm015
 172.16.228.64 vm064
-172.16.228.81 vm081
+172.16.228.81 registry.example.local vm081
 ```
 
 
@@ -133,7 +133,7 @@ sudo iptables -t nat -F && \
 sudo iptables -t nat -X && \
 sudo iptables -t mangle -F && \
 sudo iptables -t mangle -X && \
-# sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q) && \
+sudo systemctl start containerd && sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q) && \
 sudo systemctl stop kubelet && \
 sudo systemctl stop containerd && \
 sudo rm -r /etc/cni/net.d && \
@@ -145,6 +145,6 @@ sudo reboot now
 
 ` kubectl --kubeconfig=kubeconfig.yaml get nodes`
 
-
+https://registry.example.local/v2/_catalog
 # Dev
 

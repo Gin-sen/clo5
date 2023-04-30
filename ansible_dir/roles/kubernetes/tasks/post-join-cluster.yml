@@ -1,10 +1,73 @@
 ---
 
+- name: Remove Taint
+  shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+  ignore_errors: true
+
 - name: Calico operator install
-  ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/tigera-operator.yaml
+  ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/tigera-operator.yaml --warnings-as-errors=false
 - name: Calico install
-  ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/custom-resources.yaml
+  ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/custom-resources.yaml --warnings-as-errors=false
 - name: Ingress nginx install
-  ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.0/deploy/static/provider/baremetal/deploy.yaml
+  ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.0/deploy/static/provider/baremetal/deploy.yaml --warnings-as-errors=false
 - name: Patch ingress nginx
-  ansible.builtin.shell: kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '{"spec":{"template":{"spec":{"hostNetwork":true}}}}'
+  ansible.builtin.shell: kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '{"spec":{"template":{"spec":{"hostNetwork":true}}}}' --warnings-as-errors=false
+
+- name: Create /tmp/tls-common directory
+  ansible.builtin.file: 
+    name: /tmp/tls-common
+    state: directory
+
+- name: Create private key (RSA, 4096 bits)
+  community.crypto.openssl_privatekey:
+    path: /tmp/tls-common/certificate.key
+
+- name: Create certificate signing request (CSR) for self-signed certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /tmp/tls-common/certificate.key
+    common_name: example.local
+    organization_name: Test, Inc.
+    subject_alt_name:
+      - "DNS:*.example.local"
+  register: csr
+
+
+- name: Create self-signed certificate from CSR
+  community.crypto.x509_certificate:
+    path: /tmp/tls-common/certificate.pem
+    csr_content: "{{ csr.csr }}"
+    privatekey_path: /tmp/tls-common/certificate.key
+    provider: selfsigned
+
+- name: Delete secret
+  shell: kubectl delete secret -n ingress-nginx tls-common-secret
+  ignore_errors: true
+  
+- name: Upload secret
+  shell: kubectl create secret tls -n ingress-nginx tls-common-secret --cert=/tmp/tls-common/certificate.pem --key=/tmp/tls-common/certificate.key
+
+- name: Install Longhorn ans gitlab repo
+  shell: "helm repo add {{ item }}"
+  loop:
+    - longhorn https://charts.longhorn.io
+    - gitlab https://charts.gitlab.io
+  
+- name: Update helm repo
+  shell: helm repo update
+
+# - name: Longhorn install
+#   shell: helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.4.1
+
+- name: Template Gitlab runner config file
+  template:
+    src: gitlab-runner.yaml.j2
+    dest: gitlab-runner.yaml
+    owner: root
+    group: root
+    mode: "0444"
+  tags: gitlab-runner
+
+- name: Gitlab runner install
+  shell: helm upgrade --install --create-namespace --namespace gitlab-runner -f gitlab-runner.yaml gitlab-runner gitlab/gitlab-runner
+  tags: gitlab-runner
+  
