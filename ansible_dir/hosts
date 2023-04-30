@@ -5,6 +5,9 @@ kubeworkers
 [gitlab:children]
 kubemaster
 
+[docker_registry:children]
+kubemaster
+
 [kubemaster]
 172.16.228.15 remote_ip_hostname=vm015
 

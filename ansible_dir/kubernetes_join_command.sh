@@ -1,1 +1,1 @@
-kubeadm join 172.16.228.15:6443 --token vincem.nfdrx3gmbt6dtpwh --discovery-token-ca-cert-hash sha256:8047bee8ed6b4181660ff07d16cb80de5571c73d1027701a603fe9e7ffc1ff05 
+kubeadm join 172.16.228.15:6443 --token 9f8076.ojch32dqzmu9usm4 --discovery-token-ca-cert-hash sha256:0dd3aad5bb30c58ff39c29fdd13943e221920288bc3ce2018c0c9af9f5d57964 

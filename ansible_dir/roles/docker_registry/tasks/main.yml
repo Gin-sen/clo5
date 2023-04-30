@@ -1,2 +1,70 @@
 ---
 # tasks file for docker_registry
+
+- name: Check cluster status
+  ansible.builtin.shell: kubectl get nodes
+  ignore_errors: true
+  register: cluster_exist
+
+- debug:
+    msg: 
+      - "{{ cluster_exist.rc }}"
+
+- block:
+  - name: Create /tmp/my-registry directory
+    ansible.builtin.file: 
+      name: /tmp/my-registry
+      state: directory
+
+  - name: Create private key (RSA, 4096 bits)
+    community.crypto.openssl_privatekey:
+      path: /tmp/my-registry/certificate.key
+
+  - name: Create certificate signing request (CSR) for self-signed certificate
+    community.crypto.openssl_csr_pipe:
+      privatekey_path: /tmp/my-registry/certificate.key
+      common_name: example.local
+      organization_name: Test, Inc.
+      subject_alt_name:
+        - "DNS:registry.example.local"
+    register: csr
+
+  - name: Create self-signed certificate from CSR
+    community.crypto.x509_certificate:
+      path: /tmp/my-registry/certificate.pem
+      csr_content: "{{ csr.csr }}"
+      privatekey_path: /tmp/my-registry/certificate.key
+      provider: selfsigned
+  
+  - name: Get namespace
+    shell: kubectl get ns docker-registry
+    ignore_errors: true
+    register: ns_exist
+
+  - name: Create ns
+    shell: kubectl create ns docker-registry
+    when: ns_exist.rc == 1
+ 
+  - name: Delete secret
+    shell: kubectl delete secret -n docker-registry tls-registry-secret --ignore-not-found
+    ignore_errors: true
+
+  - name: Upload secret
+    shell: kubectl create secret tls -n docker-registry tls-registry-secret --cert=/tmp/my-registry/certificate.pem --key=/tmp/my-registry/certificate.key
+  
+  - name: Create /tmp/charts directory
+    ansible.builtin.file: 
+      name: /tmp/charts
+      state: directory
+
+  - name: Synchronization of charts/my-registry on the control machine to dest on the remote hosts
+    ansible.posix.synchronize:
+      src: ./charts/my-registry
+      dest: /tmp/charts/
+
+  - name: Upgrade docker_registry with helm
+    shell: helm upgrade --install --wait --atomic -n docker-registry --create-namespace docker-registry /tmp/charts/my-registry
+
+  when: 
+    - cluster_exist.rc == 0
+  ignore_errors: "{{ ansible_check_mode }}"

@@ -1,9 +1,5 @@
 ---
 
-- name: Reset kubernetes cluster
-  ansible.builtin.shell: kubeadm reset -f
-  ignore_errors: true
-
 - name: Check cluster status
   ansible.builtin.shell: kubectl get nodes
   ignore_errors: true
@@ -45,25 +41,24 @@
     - name: Copy .kube/config file
       ansible.builtin.copy: 
         src: /etc/kubernetes/admin.conf
-        dest: "{{ item }}"
+        dest: "{{ item.path }}"
         remote_src: yes
-        mode: '0664'
+        mode: '0644'
+        owner: "{{ item.name }}"
       loop:
-        - "/home/{{ ansible_ssh_user }}/.kube/config"
-        - "/root/.kube/config"
+        - { name: "{{ ansible_ssh_user }}", path: "/home/{{ ansible_ssh_user }}/.kube/config" }
+        - { name: root, path: "/root/.kube/config" }
 
-    - name: Wait for Kubernetes pods to start
-      ansible.builtin.pause:
-        prompt: "Make sure kube-system pods are running before taint (kubectl get pods -n kube-system)"
-        seconds: 5
+    - name: Cat kube config file.
+      shell: cat /etc/kubernetes/admin.conf
+      register: kubeconfig_file
 
-    - name: Remove Taint
-      shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
+    - name: Copy kube config to local file.
+      local_action: copy content="{{ kubeconfig_file.stdout_lines|join('\n') }}" dest="./kubeconfig.yaml" mode=0777
+      become: false
 
-    - name: Wait for Kubernetes pods to start
-      ansible.builtin.pause:
-        prompt: "Make sure kube-system pods are running before Calico install (kubectl get pods -n kube-system)"
-        seconds: 5
+    # - name: Remove Taint
+    #   shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 
     - name: Get the token for joining the worker nodes
       shell: kubeadm token create  --print-join-command
