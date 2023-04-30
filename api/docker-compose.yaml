@@ -90,8 +90,16 @@ services:
         SOURCEFOLDER: hotel
     environment:
       - ENV_SOURCEFOLDER=hotel
+      - DB_HOST=hotel.db
+      - DB_PORT=5432
+      - DB_USER=Bobby
+      - DB_PASS=BR
+      - DB_NAME=hotel-db
     volumes:
       - ./hotel:/code/hotel
+    depends_on:
+      - hotel.db
+
 
 volumes:
   # db-data-booking:

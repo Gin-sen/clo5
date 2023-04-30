@@ -1,7 +1,1 @@
-api/booking/__pycache__/__init__.cpython-39.pyc
-api/booking/__pycache__/main.cpython-39.pyc
-api/hotel/__pycache__/__init__.cpython-39.pyc
-api/hotel/__pycache__/__init__.cpython-311.pyc
-api/hotel/__pycache__/main.cpython-39.pyc
-api/hotel/__pycache__/main.cpython-311.pyc
-api/hotel/__pycache__/test_main.cpython-311-pytest-7.3.1.pyc
+api/**/*.pyc
