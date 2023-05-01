@@ -11,12 +11,28 @@ def get_booking(db: Session, booking_id: int):
     return db.query(models.Booking).filter(models.Booking.id == booking_id).first()
 
 
+def get_additional_service(db: Session, additional_service_id: int):
+    return db.query(models.AdditionalService).filter(models.AdditionalService.id == additional_service_id).first()
+
+
+def get_payment(db: Session, payment_id: int):
+    return db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+
+
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
+
+
+def get_bookings(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Booking).offset(skip).limit(limit).all()
+
+
+def get_additional_services(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.AdditionalService).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: schemas.UserCreate):
@@ -29,8 +45,8 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def create_user_booking(db: Session, booking: schemas.BookingCreate, user_id: int):
-    db_item = models.Booking(**booking.dict(), owner_id=user_id)
-    db.add(db_item)
+    db_booking = models.Booking(**booking.dict(), owner_id=user_id)
+    db.add(db_booking)
     db.commit()
-    db.refresh(db_item)
-    return db_item
+    db.refresh(db_booking)
+    return db_booking

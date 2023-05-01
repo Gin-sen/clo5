@@ -31,17 +31,17 @@ client = TestClient(app)
 
 def test_create_hotel():
     response = client.post(
-        "/hotels/",
+        "/bookings/",
         json={"name": "deadpool@example.com", "address": "chimichangas4life"},
     )
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == "deadpool@example.com"
     assert "id" in data
-    hotel_id = data["id"]
+    booking_id = data["id"]
 
-    response = client.get(f"/hotels/{hotel_id}")
+    response = client.get(f"/bookings/{booking_id}")
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["name"] == "deadpool@example.com"
-    assert data["id"] == hotel_id
+    assert data["id"] == booking_id

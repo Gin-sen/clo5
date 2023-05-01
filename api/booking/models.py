@@ -1,4 +1,3 @@
-from DateTime import DateTime
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -12,8 +11,6 @@ class Booking(Base):
     users_name = Column(String, unique=True, index=True)
     reservation_number = Column(Integer, index=True)
     numbers_people = Column(Integer, index=True)
-    created_date = Column(DateTime, index=True)
-    updated_date = Column(DateTime, index=True)
     is_active = Column(Boolean, default=True)
 
     users_id = relationship("User", back_populates="owner")
@@ -43,8 +40,6 @@ class Payment(Base):
     price = Column(String, unique=True, index=True)
     promo = Column(String, unique=True, index=True)
     total = Column(String, unique=True, index=True)
-    created_date = Column(DateTime, index=True)
-    updated_date = Column(DateTime, index=True)
     is_active = Column(Boolean, default=True)
 
     items = relationship("Item", back_populates="owner")
