@@ -6,45 +6,100 @@
 
 - name: Calico operator install
   ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/tigera-operator.yaml --warnings-as-errors=false
+  ignore_errors: true
 - name: Calico install
   ansible.builtin.shell: kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.25.1/manifests/custom-resources.yaml --warnings-as-errors=false
+  ignore_errors: true
 - name: Ingress nginx install
   ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.7.0/deploy/static/provider/baremetal/deploy.yaml --warnings-as-errors=false
+  ignore_errors: true
 - name: Patch ingress nginx
   ansible.builtin.shell: kubectl patch deployment ingress-nginx-controller -n ingress-nginx -p '{"spec":{"template":{"spec":{"hostNetwork":true}}}}' --warnings-as-errors=false
+  ignore_errors: true
 
 - name: Create /tmp/tls-common directory
   ansible.builtin.file: 
     name: /tmp/tls-common
     state: directory
 
-- name: Create private key (RSA, 4096 bits)
+- name: Create CA private key (RSA, 4096 bits)
   community.crypto.openssl_privatekey:
-    path: /tmp/tls-common/certificate.key
+    path: /tmp/tls-common/ca-certificate.key
+    # pas de passprhase en secret kube
+    # passphrase: "{{ secret_ca_passphrase }}"
+    # cipher: auto
 
-- name: Create certificate signing request (CSR) for self-signed certificate
+- name: Create certificate signing request (CSR) for self-signed CA certificate
   community.crypto.openssl_csr_pipe:
-    privatekey_path: /tmp/tls-common/certificate.key
-    common_name: example.local
-    organization_name: Test, Inc.
-    subject_alt_name:
-      - "DNS:*.example.local"
-  register: csr
+    privatekey_path: /tmp/tls-common/ca-certificate.key
+    # privatekey_passphrase: "{{ secret_ca_passphrase }}"
+    common_name: Test CA
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: true
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+  register: ca_csr
 
-
-- name: Create self-signed certificate from CSR
+- name: Create self-signed CA certificate from CSR
   community.crypto.x509_certificate:
-    path: /tmp/tls-common/certificate.pem
-    csr_content: "{{ csr.csr }}"
-    privatekey_path: /tmp/tls-common/certificate.key
+    path: /tmp/tls-common/ca-certificate.crt
+    csr_content: "{{ ca_csr.csr }}"
+    privatekey_path: /tmp/tls-common/ca-certificate.key
+    # privatekey_passphrase: "{{ secret_ca_passphrase }}"
     provider: selfsigned
 
-- name: Delete secret
-  shell: kubectl delete secret -n ingress-nginx tls-common-secret
+- debug:
+    msg:
+      - "{{ ca_csr.csr }}"
+
+- name: Delete CA secret
+  shell: kubectl delete secret -n ingress-nginx tls-common-ca-secret
   ignore_errors: true
   
 - name: Upload secret
-  shell: kubectl create secret tls -n ingress-nginx tls-common-secret --cert=/tmp/tls-common/certificate.pem --key=/tmp/tls-common/certificate.key
+  shell: kubectl create secret tls -n ingress-nginx tls-common-ca-secret --cert=/tmp/tls-common/ca-certificate.crt --key=/tmp/tls-common/ca-certificate.key
+
+- name: Create private key for new certificates
+  community.crypto.openssl_privatekey:
+    path: /tmp/tls-common/client-certificate.key
+  run_once: true
+
+- name: Create certificate signing request (CSR) for new certificate
+  community.crypto.openssl_csr_pipe:
+    privatekey_path: /tmp/tls-common/client-certificate.key
+    subject_alt_name:
+      - "DNS:example.local"
+      - "DNS:*.example.local"
+  run_once: true
+  register: csr
+
+- name: Sign certificate with our CA
+  community.crypto.x509_certificate_pipe:
+    csr_content: "{{ csr.csr }}"
+    provider: ownca
+    ownca_path: /tmp/tls-common/ca-certificate.crt
+    ownca_privatekey_path: /tmp/tls-common/ca-certificate.key
+    # ownca_privatekey_passphrase: "{{ secret_ca_passphrase }}"
+    ownca_not_after: +365d  # valid for one year
+    ownca_not_before: "-1d"  # valid since yesterday
+  run_once: true
+  register: certificate
+
+- name: Write certificate file
+  copy:
+    dest: /tmp/tls-common/client-certificate.cert
+    content: "{{ certificate.certificate }}"
+  run_once: true
+
+- name: Delete secret
+  shell: kubectl delete secret -n ingress-nginx tls-common-client-secret
+  ignore_errors: true
+
+- name: Upload secret
+  shell: kubectl create secret tls -n ingress-nginx tls-common-client-secret --cert=/tmp/tls-common/client-certificate.cert --key=/tmp/tls-common/client-certificate.key
 
 - name: Install Longhorn ans gitlab repo
   shell: "helm repo add {{ item }}"

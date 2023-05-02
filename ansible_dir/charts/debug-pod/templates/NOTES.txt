@@ -1,0 +1,6 @@
+1. Get the pod name by running these commands:
+
+export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "debug-pod.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+export CONTAINER_NAME=$(kubectl get pod --namespace {{ .Release.Namespace }} $POD_NAME -o jsonpath="{.spec.containers[0].name}")
+echo "NAMESPACE {{ .Release.Namespace }} : Start a shell in $POD_NAME to use your debug applications"
+kubectl --namespace {{ .Release.Namespace }} exec -it $POD_NAME -c $CONTAINER_NAME -- sh

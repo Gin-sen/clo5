@@ -144,7 +144,7 @@ sessionServer:
 
 ## For RBAC support:
 rbac:
-  create: false
+  create: true
 
   ## Define specific rbac permissions.
   ## DEPRECATED: see .Values.rbac.rules
@@ -325,6 +325,7 @@ runners:
   # runner configuration: https://docs.gitlab.com/runner/configuration/advanced-configuration.html
   config: |
     [[runners]]
+      executor = "kubernetes"
       [runners.kubernetes]
         namespace = "{{ '{{' }}.Release.Namespace{{ '}}' }}"
         image = "ubuntu:20.04"
@@ -332,10 +333,13 @@ runners:
         [[runners.kubernetes.host_aliases]]
           ip = "172.16.228.15"
           hostnames = ["gitlab.example.local"]
+        [[runners.kubernetes.host_aliases]]
+          ip = "172.16.228.81"
+          hostnames = ["registry.example.local"]
 
   ## Which executor should be used
   ##
-  # executor: kubernetes
+  executor: kubernetes
 
   ## Default container image to use for builds when none is specified
   ##

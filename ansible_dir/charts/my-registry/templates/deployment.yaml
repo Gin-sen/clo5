@@ -36,8 +36,14 @@ spec:
           volumeMounts:
             - name: repo-vol
               mountPath: "/var/lib/registry"
-            - name: certs-vol
+            - name: certs-tls-vol
+              mountPath: "/etc/docker/certs.d/registry.example.local"
+              readOnly: true
+            - name: certs-ca-vol
               mountPath: "/certs"
+              readOnly: true
+            - name: config-vol
+              mountPath: "/etc/docker/registry"
               readOnly: true
             # - name: auth-vol
             #   mountPath: "/auth"
@@ -60,9 +66,15 @@ spec:
         - name: repo-vol
           persistentVolumeClaim:
             claimName: {{ include "my-registry.fullname" . }}-pvc
-        - name: certs-vol
+        - name: certs-tls-vol
           secret:
             secretName: tls-registry-secret
+        - name: certs-ca-vol
+          secret:
+            secretName: tls-common-ca-secret
+        - name: config-vol
+          configMap:
+            name: {{ include "my-registry.fullname" . }}
         # - name: auth-vol
         #   secret:
         #     secretName: auth-secret

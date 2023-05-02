@@ -57,9 +57,6 @@
       local_action: copy content="{{ kubeconfig_file.stdout_lines|join('\n') }}" dest="./kubeconfig.yaml" mode=0777
       become: false
 
-    # - name: Remove Taint
-    #   shell: kubectl taint nodes --all node-role.kubernetes.io/control-plane-
-
     - name: Get the token for joining the worker nodes
       shell: kubeadm token create  --print-join-command
       register: kubernetes_join_command
