@@ -18,23 +18,40 @@ ssh student@172.16.228.81
 ssh student@172.16.228.15
 ```
 
-Login / mdp étudiant [Gitlab](http://gitlab.example.local/) :
-login ETNA / Pass123*
-
-Login / mdp prof [Gitlab](http://gitlab.example.local/) :
-login ETNA / P@SSW0RD
-
-Repository : http://gitlab.example.local/gitlab-instance-352af650/clo5
-
-## Setup
+## Setup /etc/hosts
 
 Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour Windows):
 ```txt
 172.16.228.15 gitlab.example.local
 172.16.228.81 registry.example.local
 ```
+### Gitlab
 
+Login / mdp étudiant [Gitlab](http://gitlab.example.local/) :
+`login_ETNA` / `Pass123*`
 
+Login / mdp prof [Gitlab](http://gitlab.example.local/) :
+`login_ETNA` / `P@SSW0RD`
+
+Repository : http://gitlab.example.local/gitlab-instance-352af650/clo5
+
+### Utiliser `kubectl`
+
+`kubectl --kubeconfig=kubeconfig.yaml get nodes`
+
+### Consulter le registry
+
+Télécharger la CA et lancer la commande d'update :
+```bash
+sudo scp places_m@172.16.228.15:/tmp/tls-common/ca-certificate.crt /etc/ssl/certs/registry.example.local.crt
+sudo update-ca-certificates
+```
+
+Voir la doc Docker pour consulter l'api en détail :
+
+`sudo curl 'https://registry.example.local/v2/_catalog/' --cacert /etc/ssl/certs/registry.example.local.crt`
+
+## Setup Infra
 ### Installation de Python
 
 - [Téléchargement officiel Python](https://www.python.org/downloads/)
@@ -66,8 +83,12 @@ python3 -m pip install --user -r requirements.txt
 ansible --version
 ```
 
-## Configuration avec Ansible
+Prérequis sur local:
+- `sshpass`
 
+```bash
+sudo apt-get install -y sshpass
+```
 
 ### Création de rôle Ansible
 
@@ -78,18 +99,11 @@ ansible-galaxy role init kubernetes
 ansible-galaxy role init docker_registry
 ```
 
-#### Création d'un mot de passe dans le Vault
+### Création d'un mot de passe dans le Vault
 
-Prérequis sur local:
-- `sshpass`
-
-```bash
-sudo apt-get install -y sshpass
-```
-
-[En cours]
 ```bash
 ansible-vault -v encrypt roles/gitlab/vars/admin.yml
+ansible-vault -v decrypt roles/gitlab/vars/admin.yml
 ```
 
 
@@ -99,6 +113,8 @@ Prérequis:
 - module `kubernetes.core` d'Ansible
 - module `ansible.utils` d'Ansible
 - module `ansible.posix` d'Ansible
+- module `community.crypto` d'Ansible
+- module `community.general` d'Ansible
 
 ```bash
 ansible-galaxy collection install kubernetes.core
@@ -108,8 +124,9 @@ ansible-galaxy collection install community.crypto
 ansible-galaxy collection install community.general
 ```
 
-#### Usage standard
+### Usage standard
 
+Pas de `kubeadm init` :
 ```bash
 ansible-playbook infrastructure.yaml -i hosts
 ```
@@ -143,18 +160,13 @@ sudo rm -r /opt/cni/bin
 sudo reboot now
 ```
 
-## Utiliser `kubectl`
-
-`kubectl --kubeconfig=kubeconfig.yaml get nodes`
-
-https://registry.example.local/v2/_catalog
 
 ## Notes 
 PB de certificat depuis le gitlab runner vers le registry. Fix + patch rapide dans les notes : https://docs.gitlab.com/runner/configuration/tls-self-signed.html#supported-options-for-self-signed-certificates-targeting-the-gitlab-server
 
 Conf registry (tls): https://docs.docker.com/registry/configuration/#http
 
-Enable registry dans gitlab:  https://docs.gitlab.com/ee/administration/packages/container_registry.html#enable-the-container-registry
+Enable registry dans gitlab ? :  https://docs.gitlab.com/ee/administration/packages/container_registry.html#enable-the-container-registry
 
 
 
