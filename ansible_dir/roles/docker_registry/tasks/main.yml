@@ -19,23 +19,35 @@
   - name: Create private key (RSA, 4096 bits)
     community.crypto.openssl_privatekey:
       path: /tmp/my-registry/certificate.key
+      # pas de passphrase dans kube
+      # passphrase: "{{ secret_ca_passphrase }}"
+      # cipher: auto
 
   - name: Create certificate signing request (CSR) for self-signed certificate
     community.crypto.openssl_csr_pipe:
       privatekey_path: /tmp/my-registry/certificate.key
-      common_name: example.local
-      organization_name: Test, Inc.
       subject_alt_name:
         - "DNS:registry.example.local"
-    register: csr
+    register: csr_r
 
-  - name: Create self-signed certificate from CSR
-    community.crypto.x509_certificate:
-      path: /tmp/my-registry/certificate.pem
-      csr_content: "{{ csr.csr }}"
-      privatekey_path: /tmp/my-registry/certificate.key
-      provider: selfsigned
-  
+  - name: Sign certificate with our CA
+    community.crypto.x509_certificate_pipe:
+      csr_content: "{{ csr_r.csr }}"
+      provider: ownca
+      ownca_path: /tmp/tls-common/ca-certificate.crt
+      ownca_privatekey_path: /tmp/tls-common/ca-certificate.key
+      # ownca_privatekey_passphrase: "{{ secret_ca_passphrase }}"
+      ownca_not_after: +365d  # valid for one year
+      ownca_not_before: "-1d"  # valid since yesterday
+    run_once: true
+    register: certificate_r
+
+  - name: Write certificate file
+    copy:
+      dest: /tmp/my-registry/certificate.cert
+      content: "{{ certificate_r.certificate }}"
+    run_once: true
+
   - name: Get namespace
     shell: kubectl get ns docker-registry
     ignore_errors: true
@@ -44,13 +56,20 @@
   - name: Create ns
     shell: kubectl create ns docker-registry
     when: ns_exist.rc == 1
- 
+
+  - name: Delete CA secret
+    shell: kubectl delete secret -n docker-registry tls-common-ca-secret
+    ignore_errors: true
+    
+  - name: Upload secret
+    shell: kubectl create secret tls -n docker-registry tls-common-ca-secret --cert=/tmp/tls-common/ca-certificate.crt --key=/tmp/tls-common/ca-certificate.key
+
   - name: Delete secret
-    shell: kubectl delete secret -n docker-registry tls-registry-secret --ignore-not-found
+    shell: kubectl delete secret -n docker-registry tls-registry-secret
     ignore_errors: true
 
   - name: Upload secret
-    shell: kubectl create secret tls -n docker-registry tls-registry-secret --cert=/tmp/my-registry/certificate.pem --key=/tmp/my-registry/certificate.key
+    shell: kubectl create secret tls -n docker-registry tls-registry-secret --cert=/tmp/my-registry/certificate.cert --key=/tmp/my-registry/certificate.key
   
   - name: Create /tmp/charts directory
     ansible.builtin.file: 

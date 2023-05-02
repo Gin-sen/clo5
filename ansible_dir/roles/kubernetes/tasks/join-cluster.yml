@@ -5,25 +5,34 @@
     path: /var/lib/kubelet
   register: kubelet_dir
 
-- set_fact:
-    api_server_endpoint: 172.16.228.15
-
-- name: "wait for kubeapi server"
-  uri:
-    url: "https://{{ api_server_endpoint }}:{{ kubernetes_api_port }}/healthz"
-    status_code: 200
-    validate_certs: no
-  register: result
-  until: result.status == 200
-  retries: 90
-  delay: 15
-
-- name: Copy Kubeadm join command
-  ansible.builtin.copy:
-    src: ./kubernetes_join_command.sh
-    dest: ~/kubernetes_join_command.sh
-    mode: '0777'
-
-- name: Run Kubeadm join command
-  shell: ~/kubernetes_join_command.sh
+- name: Check cluster status
+  ansible.builtin.shell: kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes
+  ignore_errors: true
+  register: cluster_joined
   
+  
+- block:
+  - set_fact:
+      api_server_endpoint: "{{ kubernetes_init_host }}"
+
+  - name: "wait for kubeapi server"
+    uri:
+      url: "https://{{ api_server_endpoint }}:{{ kubernetes_api_port }}/healthz"
+      status_code: 200
+      validate_certs: no
+    register: result
+    until: result.status == 200
+    retries: 90
+    delay: 15
+
+  - name: Copy Kubeadm join command
+    ansible.builtin.copy:
+      src: ./kubernetes_join_command.sh
+      dest: ~/kubernetes_join_command.sh
+      mode: '0777'
+
+  - name: Run Kubeadm join command
+    shell: ~/kubernetes_join_command.sh
+    
+  when: 
+    - cluster_joined.rc == 1

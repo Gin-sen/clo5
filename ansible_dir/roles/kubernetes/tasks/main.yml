@@ -52,11 +52,14 @@
   when:
     - inventory_hostname in groups['kubeworkers']
 
+- debug:
+    msg: "{{ kubernetes_init }}"
 
 - include_tasks: 
     file: post-join-cluster.yml
     apply:
-      tags: postkubejoin
-  tags: postkubejoin
+      tags: postkubejoininit
+  tags: postkubejoininit
   when:
     - inventory_hostname in groups['kubemaster']
+    # - kubernetes_init
