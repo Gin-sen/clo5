@@ -19,10 +19,10 @@ ssh student@172.16.228.15
 ```
 
 Login / mdp étudiant [Gitlab](http://gitlab.example.local/) :
-<login ETNA> / Pass123*
+login ETNA / Pass123*
 
 Login / mdp prof [Gitlab](http://gitlab.example.local/) :
-- <login ETNA> / P@SSW0RD
+login ETNA / P@SSW0RD
 
 Repository : http://gitlab.example.local/gitlab-instance-352af650/clo5
 
