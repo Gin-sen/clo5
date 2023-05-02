@@ -89,13 +89,13 @@ services:
   #       SOURCEFOLDER: booking
   #   environment:
   #     - ENV_SOURCEFOLDER=booking
-  #     - DB_HOST=hotel.db
+  #     - DB_HOST=booking.db
   #     - DB_PORT=5432
   #     - DB_USER=Bobby
   #     - DB_PASS=BR
-  #     - DB_NAME=hotel-db
+  #     - DB_NAME=booking-db
   #   volumes:
-  #     - ./hotel:/code/hotel
+  #     - ./hotel:/code/booking
   #   ports:
   #     - "8003:80"
   #   depends_on:
@@ -109,7 +109,7 @@ services:
   #     context: .
   #     target: test
   #     args:
-  #       SOURCEFOLDER: hotel
+  #       SOURCEFOLDER: booking
   #   environment:
   #     - ENV_SOURCEFOLDER=booking
   #     - DB_HOST=booking.db
@@ -118,9 +118,9 @@ services:
   #     - DB_PASS=BR
   #     - DB_NAME=booking-db
   #   volumes:
-  #     - ./hotel:/code/hotel
+  #     - ./hotel:/code/booking
   #   depends_on:
-  #     - hotel.db
+  #     - booking.db
 
 
 volumes:
