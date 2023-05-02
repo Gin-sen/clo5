@@ -7,7 +7,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - booking.db
+      # - booking.db
       - hotel.db
 
   hotel.db:
@@ -66,63 +66,63 @@ services:
     depends_on:
       - hotel.db
 
-  booking.db:
-    image: postgres:13-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=Bobby
-      - POSTGRES_PASSWORD=BR
-      - POSTGRES_DB=booking-db
-    volumes:
-      - db-data-hotel:/var/lib/postgresql/data
-    ports:
-      - "5445:5432"
+  # booking.db:
+  #   image: postgres:13-alpine
+  #   restart: always
+  #   environment:
+  #     - POSTGRES_USER=Bobby
+  #     - POSTGRES_PASSWORD=BR
+  #     - POSTGRES_DB=booking-db
+  #   volumes:
+  #     - db-data-hotel:/var/lib/postgresql/data
+  #   ports:
+  #     - "5445:5432"
 
-  booking.api:
-    image: booking-api
-    restart: on-failure
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: final
-      args:
-        SOURCEFOLDER: booking
-    environment:
-      - ENV_SOURCEFOLDER=booking
-      - DB_HOST=hotel.db
-      - DB_PORT=5432
-      - DB_USER=Bobby
-      - DB_PASS=BR
-      - DB_NAME=hotel-db
-    volumes:
-      - ./hotel:/code/hotel
-    ports:
-      - "8003:80"
-    depends_on:
-      - booking.db
+  # booking.api:
+  #   image: booking-api
+  #   restart: on-failure
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: .
+  #     target: final
+  #     args:
+  #       SOURCEFOLDER: booking
+  #   environment:
+  #     - ENV_SOURCEFOLDER=booking
+  #     - DB_HOST=hotel.db
+  #     - DB_PORT=5432
+  #     - DB_USER=Bobby
+  #     - DB_PASS=BR
+  #     - DB_NAME=hotel-db
+  #   volumes:
+  #     - ./hotel:/code/hotel
+  #   ports:
+  #     - "8003:80"
+  #   depends_on:
+  #     - booking.db
 
-  booking.api-test:
-    image: booking-api-test
-    restart: "no"
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: test
-      args:
-        SOURCEFOLDER: hotel
-    environment:
-      - ENV_SOURCEFOLDER=booking
-      - DB_HOST=booking.db
-      - DB_PORT=5432
-      - DB_USER=Bobby
-      - DB_PASS=BR
-      - DB_NAME=booking-db
-    volumes:
-      - ./hotel:/code/hotel
-    depends_on:
-      - hotel.db
+  # booking.api-test:
+  #   image: booking-api-test
+  #   restart: "no"
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: .
+  #     target: test
+  #     args:
+  #       SOURCEFOLDER: hotel
+  #   environment:
+  #     - ENV_SOURCEFOLDER=booking
+  #     - DB_HOST=booking.db
+  #     - DB_PORT=5432
+  #     - DB_USER=Bobby
+  #     - DB_PASS=BR
+  #     - DB_NAME=booking-db
+  #   volumes:
+  #     - ./hotel:/code/hotel
+  #   depends_on:
+  #     - hotel.db
 
 
 volumes:
   db-data-hotel:
-  db-data-booking:
+  # db-data-booking:
