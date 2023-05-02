@@ -1,2 +1,4 @@
 ---
 # defaults file for docker_registry
+
+secret_ca_passphrase: changeme

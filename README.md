@@ -132,21 +132,21 @@ sudo iptables -D KUBE-FIREWALL 1
 ## Clean stuff (tmp)
 
 ```bash
-sudo kubeadm reset -f && \
-sudo iptables -P INPUT ACCEPT && \
-sudo iptables -P OUTPUT ACCEPT && \
-sudo iptables -P FORWARD ACCEPT && \
-sudo iptables -F && \
-sudo iptables -X && \
-sudo iptables -t nat -F && \
-sudo iptables -t nat -X && \
-sudo iptables -t mangle -F && \
-sudo iptables -t mangle -X && \
-sudo systemctl start containerd && sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q) && \
-sudo systemctl stop kubelet && \
-sudo systemctl stop containerd && \
-sudo rm -r /etc/cni/net.d && \
-sudo rm -r /opt/cni/bin && \
+sudo kubeadm reset -f
+sudo iptables -P INPUT ACCEPT
+sudo iptables -P OUTPUT ACCEPT
+sudo iptables -P FORWARD ACCEPT
+sudo iptables -F
+sudo iptables -X
+sudo iptables -t nat -F
+sudo iptables -t nat -X
+sudo iptables -t mangle -F
+sudo iptables -t mangle -X
+sudo ctr -n k8s.io c rm $(sudo ctr -n k8s.io c ls -q)
+sudo systemctl stop kubelet
+sudo systemctl stop containerd
+sudo rm -r /etc/cni/net.d
+sudo rm -r /opt/cni/bin
 sudo reboot now
 ```
 
@@ -155,5 +155,15 @@ sudo reboot now
 ` kubectl --kubeconfig=kubeconfig.yaml get nodes`
 
 https://registry.example.local/v2/_catalog
+
+## Notes 
+PB de certificat depuis le gitlab runner vers le registry. Fix + patch rapide dans les notes : https://docs.gitlab.com/runner/configuration/tls-self-signed.html#supported-options-for-self-signed-certificates-targeting-the-gitlab-server
+
+Conf registry (tls): https://docs.docker.com/registry/configuration/#http
+
+Enable registry dans gitlab:  https://docs.gitlab.com/ee/administration/packages/container_registry.html#enable-the-container-registry
+
+
+
 # Dev
 

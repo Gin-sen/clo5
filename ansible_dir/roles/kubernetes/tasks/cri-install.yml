@@ -85,13 +85,14 @@
     group: root
     mode: "0644"
 
-- name: start and enable containerd
+- name: start and enable containerd & systemd-resolved
   ansible.builtin.systemd:
-    name: containerd
+    name: 
+      - containerd
+      - systemd-resolved
     state: restarted
     enabled: yes
     daemon_reload: true
-
 
 - name: Force all notified handlers to run now
   meta: flush_handlers
