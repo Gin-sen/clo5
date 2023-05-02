@@ -24,17 +24,15 @@ Login / mdp étudiant [Gitlab](http://gitlab.example.local/) :
 Login / mdp prof [Gitlab](http://gitlab.example.local/) :
 - <login ETNA> / P@SSW0RD
 
+Repository : http://gitlab.example.local/gitlab-instance-352af650/clo5
 
 ## Setup
 
 Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour Windows):
 ```txt
-172.16.228.64 chart.example.local
 172.16.228.15 gitlab.example.local
-172.16.228.64 registry.example.local
+172.16.228.81 registry.example.local
 ```
-
-
 
 
 ### Installation de Python
@@ -74,7 +72,7 @@ ansible --version
 ### Création de rôle Ansible
 
 Dans le dossier `roles` :
-````bash
+```bash
 ansible-galaxy role init gitlab
 ansible-galaxy role init kubernetes
 ansible-galaxy role init docker_registry
@@ -120,14 +118,9 @@ ansible-playbook infrastructure.yaml -i hosts
 
 Si vous ne précisez pas cette variable, le script de création de cluster Kubernetes ne se lancera pas
 
-````bash
+```bash
 ansible-playbook infrastructure.yaml -i hosts -e kubernetes_init_host=172.16.228.15
-````
-kubectl -n kube-system get cm kubeadm-config -o yaml
-
-sudo iptables -L KUBE-FIREWALL --line-numbers -n
-sudo iptables -D KUBE-FIREWALL 1
-
+```
 
 ## Clean stuff (tmp)
 
@@ -152,7 +145,7 @@ sudo reboot now
 
 ## Utiliser `kubectl`
 
-` kubectl --kubeconfig=kubeconfig.yaml get nodes`
+`kubectl --kubeconfig=kubeconfig.yaml get nodes`
 
 https://registry.example.local/v2/_catalog
 
