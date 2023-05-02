@@ -12,7 +12,7 @@
 
 - block:
 
-  - include_task:
+  - include_tasks:
       file: create-upload-certs.yml
 
   - name: Create /tmp/charts directory
