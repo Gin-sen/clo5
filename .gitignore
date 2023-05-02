@@ -1,1 +1,2 @@
-**/*.pyc
+api/**/*.pyc
+api/**/__pycache__/
