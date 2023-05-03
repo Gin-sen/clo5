@@ -11,11 +11,18 @@ class Booking(Base):
     users_name = Column(String, unique=True, index=True)
     reservation_number = Column(Integer, index=True)
     numbers_people = Column(Integer, index=True)
+    numbers_night = Column(Integer, index=True)
     is_active = Column(Boolean, default=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    payment_id = Column(Integer, ForeignKey("payment.id"))
 
-    users_id = relationship("User", back_populates="owner")
+    additional_service_id = Column(Integer, ForeignKey('additionalServices.id'))
+    additional_service = relationship("AdditionalService",
+                                      primaryjoin="Booking.additional_service_id == AdditionalService.id")
+    owner = relationship("User", back_populates="bookings")
     payment = relationship("Payment", back_populates="owner")
-    additional_services_id = relationship("AdditionalService", back_populates="owner")
+
+
 
 
 class User(Base):
@@ -28,29 +35,25 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)
     hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
 
-    bookings = relationship("User", back_populates="owner")
+    bookings = relationship("Booking", back_populates="owner")
 
 
 class Payment(Base):
     __tablename__ = "payment"
 
     id = Column(Integer, primary_key=True, index=True)
-    price = Column(String, unique=True, index=True)
-    promo = Column(String, unique=True, index=True)
-    total = Column(String, unique=True, index=True)
-    is_active = Column(Boolean, default=True)
+    price = Column(Integer, unique=True, index=True)
+    promo = Column(Integer, unique=True, index=True)
+    total = Column(Integer, unique=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    items = relationship("Item", back_populates="owner")
+    owner = relationship("Booking", back_populates="payment")
 
 
 class AdditionalService(Base):
-    __tablename__ = "additionalService"
+    __tablename__ = "additionalServices"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-
-    booking = relationship("Booking", back_populates="owner")
+    name = Column(String, unique=True, index=True)
+    price = Column(Integer, unique=True, index=True)
