@@ -57,7 +57,7 @@ class User(UserBase):
     password = str
     created_date = datetime
     update_date = datetime
-    is_active: bool
+    # is_active: bool
     bookings: list[Booking] = []
 
     class Config:
