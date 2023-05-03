@@ -11,7 +11,7 @@ class Booking(Base):
     users_name = Column(String, unique=True, index=True)
     reservation_number = Column(Integer, index=True)
     numbers_people = Column(Integer, index=True)
-    numbers_night = Column(Integer, index=True)
+    nights = Column(Integer, index=True)
     is_active = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     payment_id = Column(Integer, ForeignKey("payment.id"))
