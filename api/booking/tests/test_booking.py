@@ -29,7 +29,7 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
-def test_create_hotel():
+def test_create_booking():
     response = client.post(
         "/bookings/",
         json={"name": "deadpool@example.com", "address": "chimichangas4life"},
