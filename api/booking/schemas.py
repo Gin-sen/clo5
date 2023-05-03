@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -21,7 +23,10 @@ class Services(ServicesBase):
 
 
 class BookingBase(BaseModel):
-    title: str
+    name: str
+    nights: int
+    username: str
+    peoples: int
 
 
 class BookingCreate(BookingBase):
@@ -30,10 +35,10 @@ class BookingCreate(BookingBase):
 
 class Booking(BookingBase):
     id: int
-    nights: int
-    usernames: str
-    people: int
     owner_id: int
+    reservation_number: int
+    user: list[User] = []
+    payment: list[Payment] = []
     services: list[Services] = []
 
     class Config:
@@ -42,19 +47,19 @@ class Booking(BookingBase):
 
 class UserBase(BaseModel):
     email: str
-
-
-class UserCreate(UserBase):
-    password: str
-
-
-class User(UserBase):
-    id: int
     firstname = str
     lastname = str
     age = int
     phone = int
-    password = str
+    password: str
+
+
+class UserCreate(UserBase):
+    pass
+
+
+class User(UserBase):
+    id: int
     created_date = datetime
     update_date = datetime
     # is_active: bool
@@ -66,12 +71,15 @@ class User(UserBase):
 
 class PaymentBase(BaseModel):
     price: int
+    total: int
+
+
+class PaymentCreate(PaymentBase):
+    pass
 
 
 class Payment(PaymentBase):
     id: int
-    promo: bool | None
-    total: int
 
     class Config:
         orm_mode = True

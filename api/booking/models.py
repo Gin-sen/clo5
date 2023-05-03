@@ -8,6 +8,7 @@ class Booking(Base):
     __tablename__ = "bookings"
 
     id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
     users_name = Column(String, unique=True, index=True)
     reservation_number = Column(Integer, index=True)
     numbers_people = Column(Integer, index=True)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from os import getenv
 from typing import Annotated
 from fastapi import Depends, FastAPI, Header, HTTPException
@@ -49,28 +51,28 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.post("/bookings/", response_model=schemas.Booking)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user) \
+def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
+    db_booking = crud.get_bookings(db, name=booking.name, username=booking.username, people=booking.peoples, nights=booking.nights)
+    if db_booking:
+        raise HTTPException(status_code=400, detail="Booking already registered")
+    return crud.create_user_booking(db=db, booking=booking, user_id=1)
 
 
 
 @app.post("/payment/", response_model=schemas.Payment)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user) \
+def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
+    # db_payment = crud.get_user_by_email(db, price=payment.price, total=payment.total)
+    # if db_payment:
+    #     raise HTTPException(status_code=400, detail="Email already registered")
+    return crud.create_user(db=db, user=payment)
 
 
 @app.post("/additional_services/", response_model=schemas.Services)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
+def create_service(service: schemas.ServicesCreate, db: Session = Depends(get_db)):
+    # db_service = crud.get_user_by_email(db, name=service.name, price=service.price)
+    # if db_service:
+    #     raise HTTPException(status_code=400, detail="Email already registered")
+    return crud.create_user(db=db, user=service)
 
 
 @app.get("/users/", response_model=list[schemas.User])
