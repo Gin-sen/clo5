@@ -52,9 +52,9 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/bookings/", response_model=schemas.Booking)
 def create_booking(booking: schemas.BookingCreate, db: Session = Depends(get_db)):
-    db_booking = crud.get_bookings(db, name=booking.name, username=booking.username, people=booking.peoples, nights=booking.nights)
-    if db_booking:
-        raise HTTPException(status_code=400, detail="Booking already registered")
+    # db_booking = crud.get_bookings(db, 0, 100)
+    # if db_booking.__contains__(o=booking):
+    #     raise HTTPException(status_code=400, detail="Booking already exist")
     return crud.create_user_booking(db=db, booking=booking, user_id=1)
 
 
@@ -64,7 +64,7 @@ def create_payment(payment: schemas.PaymentCreate, db: Session = Depends(get_db)
     # db_payment = crud.get_user_by_email(db, price=payment.price, total=payment.total)
     # if db_payment:
     #     raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=payment)
+    return crud.create_payment(db=db, payment=payment)
 
 
 @app.post("/additional_services/", response_model=schemas.Services)
@@ -72,7 +72,7 @@ def create_service(service: schemas.ServicesCreate, db: Session = Depends(get_db
     # db_service = crud.get_user_by_email(db, name=service.name, price=service.price)
     # if db_service:
     #     raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=service)
+    return crud.create_service(db=db, service=service)
 
 
 @app.get("/users/", response_model=list[schemas.User])

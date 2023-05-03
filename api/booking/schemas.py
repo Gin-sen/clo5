@@ -25,8 +25,8 @@ class Services(ServicesBase):
 class BookingBase(BaseModel):
     name: str
     nights: int
-    username: str
-    peoples: int
+    users_name: str
+    numbers_people: int
 
 
 class BookingCreate(BookingBase):
@@ -35,10 +35,8 @@ class BookingCreate(BookingBase):
 
 class Booking(BookingBase):
     id: int
-    owner_id: int
+    user_id: int
     reservation_number: int
-    user: list[User] = []
-    payment: list[Payment] = []
     services: list[Services] = []
 
     class Config:
@@ -47,19 +45,19 @@ class Booking(BookingBase):
 
 class UserBase(BaseModel):
     email: str
-    firstname = str
-    lastname = str
-    age = int
-    phone = int
-    password: str
 
 
 class UserCreate(UserBase):
-    pass
+    hashed_password: str
 
 
 class User(UserBase):
     id: int
+    firstname = str
+    lastname = str
+    age = int
+    phone = int
+    hashed_password: str
     created_date = datetime
     update_date = datetime
     # is_active: bool

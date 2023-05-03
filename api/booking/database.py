@@ -2,7 +2,7 @@ from os import getenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-db_host = getenv("DB_HOST", "localhost")
+db_host = getenv("DB_HOST", "booking.db")
 db_port = getenv("DB_PORT", "5432")
 db_user = getenv("DB_USER", "Bobby")
 db_pass = getenv("DB_PASS", "BR")

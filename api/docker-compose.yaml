@@ -74,7 +74,7 @@ services:
      - POSTGRES_PASSWORD=BR
      - POSTGRES_DB=booking-db
    volumes:
-     - db-data-hotel:/var/lib/postgresql/data
+     - db-data-booking:/var/lib/postgresql/data
    ports:
      - "5445:5432"
 

@@ -52,19 +52,17 @@ def create_user_booking(db: Session, booking: schemas.BookingCreate, user_id: in
     return db_booking
 
 
-def create_payment(db: Session, payment: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
-    db.add(db_user)
+def create_payment(db: Session, payment: schemas.PaymentCreate):
+    db_payment = models.Payment(price=payment.price, total=payment.total)
+    db.add(db_payment)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_payment)
+    return db_payment
 
 
-def create_service(db: Session, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
-    db.add(db_user)
+def create_service(db: Session, service: schemas.ServicesCreate):
+    db_service = models.AdditionalService(name=service.name, price=service.price)
+    db.add(db_service)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_service)
+    return db_service
