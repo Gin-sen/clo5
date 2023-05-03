@@ -95,7 +95,7 @@ services:
      - DB_PASS=BR
      - DB_NAME=booking-db
    volumes:
-     - ./hotel:/code/booking
+     - ./booking:/code/booking
    ports:
      - "8003:80"
    depends_on:
