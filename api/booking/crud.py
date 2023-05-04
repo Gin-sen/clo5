@@ -36,11 +36,10 @@ def update_user(db, user, user_id):
 
 
 def delete_user(db: Session, user_id: int):
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
-    if db_user:
-        db.delete(db_user)
-        db.commit()
-        return db_user
+    db_user = get_user(db, user_id)
+    db.delete(db_user)
+    db.commit()
+    return db_user
 
 
 # -------BOOKINGS-------#
@@ -77,6 +76,7 @@ def update_booking_for_user(db: Session, user_id: int, booking_id: int, booking:
     return db_booking
 
 
+# -------ADDITIONAL SERVICES-------#
 def get_additional_services(db: Session):
     return db.query(models.AdditionalService)
 
