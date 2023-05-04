@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,23 +15,29 @@ class ServicesCreate(ServicesBase):
     pass
 
 
-class Services(ServicesBase):
+class Services(BaseModel):
     id: int
-    owner_id: int
-
-    class Config:
-        orm_mode = True
+    name: str
+    price: float
 
 
 class BookingBase(BaseModel):
-    name: str
     nights: int
-    users_name: str
     numbers_people: int
+    # additional_services_id: Services.id\\\\
 
 
 class BookingCreate(BookingBase):
     pass
+
+
+class BookingUpdate(BaseModel):
+    nights: int
+    numbers_people: int
+
+
+class BookingDelete(BaseModel):
+    id: int
 
 
 class Booking(BookingBase):
@@ -49,6 +56,15 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     hashed_password: str
+
+
+class UserUpdate(UserBase):
+    id: int
+    hashed_password: Optional[str] = None
+
+
+class UserDelete(BaseModel):
+    id: int
 
 
 class User(UserBase):

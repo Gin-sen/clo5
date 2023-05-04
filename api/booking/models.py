@@ -16,7 +16,6 @@ class Booking(Base):
     is_active = Column(Boolean, default=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     payment_id = Column(Integer, ForeignKey("payment.id"))
-
     additional_service_id = Column(Integer, ForeignKey('additionalServices.id'))
     additional_service = relationship("AdditionalService",
                                       primaryjoin="Booking.additional_service_id == AdditionalService.id")
