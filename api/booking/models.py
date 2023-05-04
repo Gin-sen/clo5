@@ -29,9 +29,9 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    last_name = Column(String, unique=True, index=True)
-    first_name = Column(String, unique=True, index=True)
-    age = Column(String, unique=True, index=True)
+    last_name = Column(String, index=True)
+    first_name = Column(String, index=True)
+    age = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)
     hashed_password = Column(String)
@@ -43,8 +43,8 @@ class Payment(Base):
     __tablename__ = "payment"
 
     id = Column(Integer, primary_key=True, index=True)
-    price = Column(Integer, unique=True, index=True)
-    total = Column(Integer, unique=True, index=True)
+    price = Column(Integer, index=True)
+    total = Column(Integer, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("Booking", back_populates="payment")
@@ -55,4 +55,4 @@ class AdditionalService(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    price = Column(Integer, unique=True, index=True)
+    price = Column(Integer, index=True)

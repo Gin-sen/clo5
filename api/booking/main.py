@@ -55,6 +55,18 @@ def check_booking(booking_id, db, user_id):
         raise HTTPException(status_code=404, detail="Booking not found")
 
 
+def check_service(db, additional_service_id):
+    additional_service = crud.get_additional_service(db, additional_service_id=additional_service_id)
+    if additional_service is None:
+        raise HTTPException(status_code=404, detail="Additional service not found")
+
+
+def check_payment(db, payment_id):
+    payment = crud.get_payment(db, payment_id=payment_id)
+    if payment is None:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+
 @app.post("/users/", response_model=schemas.User)
 def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if crud.get_user_by_email(db, email=user.email):
@@ -63,7 +75,7 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 @app.put("/users/{user_id}", response_model=schemas.User)
-def update_user(user_id: int,user: schemas.UserUpdate, db: Session = Depends(get_db)):
+def update_user(user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)):
     check_user(db, user_id)
     my_user = crud.update_user(db, user=user, user_id=user_id)
     return my_user
@@ -99,8 +111,9 @@ def create_booking_for_user(user_id: int, booking: schemas.BookingCreate, db: Se
 
 
 @app.get("/bookings/", response_model=list[schemas.Booking])
-def read_hotels(db: Session = Depends(get_db)):
+def get_bookings(db: Session = Depends(get_db)):
     return crud.get_bookings(db)
+
 
 # FIXME ERROR
 @app.get("/users/{user_id}/bookings/{booking_id}", response_model=list[schemas.Booking])
@@ -124,3 +137,56 @@ def delete_booking_for_user(user_id: int, booking_id: int, db: Session = Depends
     if crud.get_booking(db=db, user_id=user_id, booking_id=booking_id).user_id != user_id:
         raise HTTPException(status_code=400, detail="This booking doesnt match with this user")
     return crud.delete_booking_for_user(db=db, booking_id=booking_id, user_id=user_id)
+
+
+# -------ADDITIONAL SERVICES-------#
+
+@app.get("/additional_services/", response_model=list[schemas.Services])
+def read_additional_services(db: Session = Depends(get_db)):
+    return crud.get_additional_services(db)
+
+
+@app.get("/additional_services/{additional_service_id}", response_model=schemas.Services)
+def read_additional_service(additional_service_id: int, db: Session = Depends(get_db)):
+    check_service(db, additional_service_id)
+    additional_service = crud.get_additional_service(db, additional_service_id=additional_service_id)
+    return additional_service
+
+
+@app.post("/additional_services/", response_model=schemas.Services)
+def create_additional_service(service: schemas.ServicesCreate, db: Session = Depends(get_db)):
+    return crud.create_additional_service(db=db, service=service)
+
+
+@app.put("/additional_services/{additional_service_id}", response_model=schemas.Services)
+def update_additional_service(additional_service_id: int, additional_service: schemas.ServiceUpdate,
+                              db: Session = Depends(get_db)):
+    check_service(db, additional_service_id)
+    my_additional_service = crud.update_additional_service(db, additional_service_id=additional_service_id,
+                                                           additional_service=additional_service)
+    return my_additional_service
+
+
+@app.delete("/additional_services/{additional_service_id}")
+def delete_additional_service(additional_service_id: int, db: Session = Depends(get_db)):
+    check_service(db, additional_service_id)
+    return crud.delete_additional_service(db, additional_service_id=additional_service_id)
+
+
+# -------PAYMENT-------#
+
+@app.get("/payment/{payment_id}", response_model=schemas.Payment)
+def read_payment(payment_id: int, db: Session = Depends(get_db)):
+    check_payment(db, payment_id)
+    payment = crud.get_payment(db, payment_id=payment_id)
+    return payment
+
+
+@app.post("/users/{user_id}/payment/", response_model=schemas.Payment)
+def create_payment_for_user(user_id: int, payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
+    check_user(db, user_id)
+    db_payment = crud.create_payment(db=db, payment=payment, user_id=user_id)
+    db.refresh(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment

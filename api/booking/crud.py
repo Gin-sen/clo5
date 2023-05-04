@@ -78,12 +78,47 @@ def update_booking_for_user(db: Session, user_id: int, booking_id: int, booking:
 
 # -------ADDITIONAL SERVICES-------#
 def get_additional_services(db: Session):
-    return db.query(models.AdditionalService)
+    return db.query(models.AdditionalService).all()
 
 
 def get_additional_service(db: Session, additional_service_id: int):
     return db.query(models.AdditionalService).filter(models.AdditionalService.id == additional_service_id).first()
 
 
+def create_additional_service(db: Session, service: schemas.ServicesCreate):
+    db_service = models.AdditionalService(**service.dict())
+    db.add(db_service)
+    db.commit()
+    db.refresh(db_service)
+    return db_service
+
+
+def delete_additional_service(db: Session, additional_service_id: int):
+    db_service = get_additional_service(db, additional_service_id)
+    db.delete(db_service)
+    db.commit()
+    return db_service
+
+
+def update_additional_service(db: Session, additional_service_id: int, additional_service: schemas.ServiceUpdate):
+    db_service = get_additional_service(db, additional_service_id)
+    update_data = additional_service.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_service, key, value)
+    db.commit()
+    db.refresh(db_service)
+    return db_service
+
+
+# -------PAYMENT-------#
+
 def get_payment(db: Session, payment_id: int):
     return db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+
+
+def create_payment(db: Session, payment: schemas.PaymentCreate, user_id: int):
+    db_payment = models.Payment(**payment.dict(), user_id=user_id)
+    db.add(db_payment)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment

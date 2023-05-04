@@ -8,17 +8,22 @@ from pydantic import BaseModel
 
 class ServicesBase(BaseModel):
     name: str
-    price: str | None = None
+    price: int
 
 
 class ServicesCreate(ServicesBase):
     pass
 
 
-class Services(BaseModel):
+class ServiceUpdate(ServicesBase):
+    pass
+
+
+class Services(ServicesBase):
     id: int
-    name: str
-    price: float
+
+    class Config:
+        orm_mode = True
 
 
 class BookingBase(BaseModel):
@@ -59,8 +64,12 @@ class UserCreate(UserBase):
 
 
 class UserUpdate(UserBase):
-    id: int
     hashed_password: Optional[str] = None
+    firstname = str
+    lastname = str
+    age = int
+    phone = int
+    # update_date = datetime
 
 
 class UserDelete(BaseModel):
@@ -89,6 +98,10 @@ class PaymentBase(BaseModel):
 
 
 class PaymentCreate(PaymentBase):
+    pass
+
+
+class PaymentUpdate(PaymentBase):
     pass
 
 
