@@ -52,7 +52,11 @@ def get_bookings(db: Session):
 
 
 def create_booking(db: Session, booking: schemas.BookingCreate, user_id: int):
-    db_booking = models.Booking(**booking.dict(), user_id=user_id)
+    db_payment = create_payment(db=db, payment=schemas.PaymentCreate(price=42))
+    db_booking = models.Booking(**booking.dict(exclude={'additional_service_ids'}), user_id=user_id, payment_id=db_payment.id)
+    for additional_service_id in booking.additional_service_ids:
+        additional_service = get_additional_service(db, additional_service_id)
+        db_booking.additional_service.append(additional_service)
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
@@ -67,6 +71,16 @@ def delete_booking_for_user(db: Session, user_id: int, booking_id: int):
 
 
 def update_booking_for_user(db: Session, user_id: int, booking_id: int, booking: schemas.BookingUpdate):
+    db_booking = get_booking(db, user_id, booking_id)
+    update_data = booking.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_booking, key, value)
+    db.commit()
+    db.refresh(db_booking)
+    return db_booking
+
+
+def bound_booking_and_service(db: Session, user_id: int, booking_id: int, booking: schemas.BoundBookingAndServices):
     db_booking = get_booking(db, user_id, booking_id)
     update_data = booking.dict(exclude_unset=True)
     for key, value in update_data.items():
@@ -112,12 +126,13 @@ def update_additional_service(db: Session, additional_service_id: int, additiona
 
 # -------PAYMENT-------#
 
-def get_payment(db: Session, payment_id: int):
-    return db.query(models.Payment).filter(models.Payment.id == payment_id).first()
+def get_payment(db: Session, booking_id: int):
+    db_booking: models.Booking = db.query(models.Booking).filter(models.Booking.id == booking_id).first()
+    return db_booking.payment
 
 
-def create_payment(db: Session, payment: schemas.PaymentCreate, user_id: int):
-    db_payment = models.Payment(**payment.dict(), user_id=user_id)
+def create_payment(db: Session, payment: schemas.PaymentCreate):
+    db_payment = models.Payment(**payment.dict())
     db.add(db_payment)
     db.commit()
     db.refresh(db_payment)

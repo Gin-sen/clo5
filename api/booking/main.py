@@ -12,12 +12,6 @@ from .database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 
 
-class ItemTest(BaseModel):
-    id: str
-    title: str
-    description: str | None = None
-
-
 fake_secret_token = "coneofsilence"
 
 fake_db = {
@@ -61,8 +55,8 @@ def check_service(db, additional_service_id):
         raise HTTPException(status_code=404, detail="Additional service not found")
 
 
-def check_payment(db, payment_id):
-    payment = crud.get_payment(db, payment_id=payment_id)
+def check_payment(db, booking_id):
+    payment = crud.get_payment(db, booking_id=booking_id)
     if payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
 
@@ -131,6 +125,14 @@ def update_booking_for_user(user_id: int, booking_id: int, booking: schemas.Book
     return booking
 
 
+@app.put("/users/{user_id}/bookings/{booking_id}", response_model=schemas.Booking)
+def bound_booking_and_service(user_id: int, booking_id: int, booking: schemas.BoundBookingAndServices,
+                              db: Session = Depends(get_db)):
+    check_booking(booking_id, db, user_id)
+    booking = crud.bound_booking_and_service(db=db, booking=booking, user_id=user_id, booking_id=booking_id)
+    return booking
+
+
 @app.delete("/users/{user_id}/bookings/{booking_id}", response_model=schemas.Booking)
 def delete_booking_for_user(user_id: int, booking_id: int, db: Session = Depends(get_db)):
     check_booking(booking_id, db, user_id)
@@ -175,18 +177,18 @@ def delete_additional_service(additional_service_id: int, db: Session = Depends(
 
 # -------PAYMENT-------#
 
-@app.get("/payment/{payment_id}", response_model=schemas.Payment)
-def read_payment(payment_id: int, db: Session = Depends(get_db)):
-    check_payment(db, payment_id)
-    payment = crud.get_payment(db, payment_id=payment_id)
+@app.get("/bookings/{booking_id}/payment/", response_model=schemas.Payment)
+def read_payment(booking_id: int, db: Session = Depends(get_db)):
+    check_payment(db, booking_id)
+    payment = crud.get_payment(db, booking_id=booking_id)
     return payment
 
 
-@app.post("/users/{user_id}/payment/", response_model=schemas.Payment)
-def create_payment_for_user(user_id: int, payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
-    check_user(db, user_id)
-    db_payment = crud.create_payment(db=db, payment=payment, user_id=user_id)
-    db.refresh(db_payment)
-    db.commit()
-    db.refresh(db_payment)
-    return db_payment
+# @app.post("/bookings/{booking_id}/payment/", response_model=schemas.Payment)
+# def create_payment_for_user(user_id: int, payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
+#     check_user(db, user_id)
+#     db_payment = crud.create_payment(db=db, payment=payment, user_id=user_id)
+#     db.refresh(db_payment)
+#     db.commit()
+#     db.refresh(db_payment)
+#     return db_payment

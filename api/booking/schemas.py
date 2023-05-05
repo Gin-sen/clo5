@@ -29,16 +29,21 @@ class Services(ServicesBase):
 class BookingBase(BaseModel):
     nights: int
     numbers_people: int
-    # additional_services_id: Services.id\\\\
+    users_name: str
 
 
 class BookingCreate(BookingBase):
-    pass
+    additional_service_ids: list[int]
 
 
 class BookingUpdate(BaseModel):
     nights: int
     numbers_people: int
+    users_name: str
+
+
+class BoundBookingAndServices(BookingBase):
+    pass
 
 
 class BookingDelete(BaseModel):
@@ -49,7 +54,8 @@ class Booking(BookingBase):
     id: int
     user_id: int
     reservation_number: int
-    services: list[Services] = []
+    additional_service: list[Services]
+    # payment: Payment TODO
 
     class Config:
         orm_mode = True
@@ -94,7 +100,6 @@ class User(UserBase):
 
 class PaymentBase(BaseModel):
     price: int
-    total: int
 
 
 class PaymentCreate(PaymentBase):

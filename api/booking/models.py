@@ -1,7 +1,13 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
 from .database import Base
+
+
+booking_service = Table('booking_service', Base.metadata,
+    Column('booking_id', Integer, ForeignKey('bookings.id')),
+    Column('additional_service_id', Integer, ForeignKey('additionalServices.id'))
+)
 
 
 class Booking(Base):
@@ -14,15 +20,12 @@ class Booking(Base):
     numbers_people = Column(Integer, index=True)
     nights = Column(Integer, index=True)
     is_active = Column(Boolean, default=True)
+
     user_id = Column(Integer, ForeignKey("users.id"))
     payment_id = Column(Integer, ForeignKey("payment.id"))
-    additional_service_id = Column(Integer, ForeignKey('additionalServices.id'))
-    additional_service = relationship("AdditionalService",
-                                      primaryjoin="Booking.additional_service_id == AdditionalService.id")
+    additional_service = relationship("AdditionalService", secondary=booking_service, back_populates="booking")
     owner = relationship("User", back_populates="bookings")
-    payment = relationship("Payment", back_populates="owner")
-
-
+    payment = relationship("Payment", primaryjoin="Booking.payment_id == Payment.id")
 
 
 class User(Base):
@@ -44,10 +47,6 @@ class Payment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     price = Column(Integer, index=True)
-    total = Column(Integer, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-
-    owner = relationship("Booking", back_populates="payment")
 
 
 class AdditionalService(Base):
@@ -56,3 +55,5 @@ class AdditionalService(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     price = Column(Integer, index=True)
+
+    booking = relationship("Booking", secondary=booking_service, back_populates="additional_service")
