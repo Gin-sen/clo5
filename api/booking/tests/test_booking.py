@@ -61,25 +61,27 @@ def test_create_user():
 
 def test_create_booking():
     response = client.post(
-        "/bookings/",
-        json={"name": "deadpool@example.com", "nights": 2, "numbers_people": 2, "users_name": "bobby@test.com"},
+        "/users/1/bookings/",
+        json={"nights": 2, "numbers_people": 2, "users_name": "bobby",
+              "additional_service_ids": []},
     )
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["name"] == "last"
     assert data["nights"] == 2
     assert data["numbers_people"] == 2
-    assert data["users_name"] == "deadpool@example.com"
+    assert data["user_id"] == 1
+    assert data["users_name"] == "bobby"
     assert "id" in data
     booking_id = data["id"]
+    user_id = data["user_id"]
 
-    response = client.get(f"/bookings/{booking_id}")
+    response = client.get(f"users/{user_id}/bookings/{booking_id}")
     assert response.status_code == 200, response.text
     data = response.json()
-    assert data["name"] == "last"
     assert data["nights"] == 2
     assert data["numbers_people"] == 2
-    assert data["users_name"] == "deadpool@example.com"
+    assert data["user_id"] == 1
+    assert data["users_name"] == "bobby"
     assert data["id"] == booking_id
 
 

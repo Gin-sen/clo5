@@ -11,7 +11,6 @@ from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
-
 fake_secret_token = "coneofsilence"
 
 fake_db = {
@@ -124,14 +123,6 @@ def update_booking_for_user(user_id: int, booking_id: int, booking: schemas.Book
     return booking
 
 
-@app.put("/users/{user_id}/bookings/{booking_id}", response_model=schemas.Booking)
-def bound_booking_and_service(user_id: int, booking_id: int, booking: schemas.BoundBookingAndServices,
-                              db: Session = Depends(get_db)):
-    check_booking(booking_id, db, user_id)
-    booking = crud.bound_booking_and_service(db=db, booking=booking, user_id=user_id, booking_id=booking_id)
-    return booking
-
-
 @app.delete("/users/{user_id}/bookings/{booking_id}", response_model=schemas.Booking)
 def delete_booking_for_user(user_id: int, booking_id: int, db: Session = Depends(get_db)):
     check_booking(booking_id, db, user_id)
@@ -181,7 +172,6 @@ def read_payment(booking_id: int, db: Session = Depends(get_db)):
     check_payment(db, booking_id)
     payment = crud.get_payment(db, booking_id=booking_id)
     return payment
-
 
 # @app.post("/bookings/{booking_id}/payment/", response_model=schemas.Payment)
 # def create_payment_for_user(user_id: int, payment: schemas.PaymentCreate, db: Session = Depends(get_db)):
