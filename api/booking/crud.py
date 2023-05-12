@@ -17,7 +17,12 @@ def get_users(db: Session):
 
 def create_user(db: Session, user: schemas.UserCreate):
     fake_hashed_password = user.hashed_password + "bob"
-    db_user = models.User(email=user.email, hashed_password=fake_hashed_password)
+    db_user = models.User(email=user.email,
+                          firstname=user.firstname,
+                          lastname=user.lastname,
+                          age=user.age,
+                          phone=user.phone,
+                          hashed_password=fake_hashed_password)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -44,7 +49,11 @@ def delete_user(db: Session, user_id: int):
 
 # -------BOOKINGS-------#
 def get_booking(db: Session, user_id: int, booking_id: int):
-    return db.query(models.Booking).filter(models.Booking.id == booking_id, models.Booking.user_id == user_id).first()
+    db_user: models.User = db.query(models.User).filter(models.User.id == user_id).first()
+    for booking in db_user.bookings:
+        if booking.id == booking_id:
+            return booking
+    return None
 
 
 def get_bookings(db: Session):
@@ -55,8 +64,9 @@ def create_booking(db: Session, booking: schemas.BookingCreate, user_id: int):
     db_payment = create_payment(db=db, payment=schemas.PaymentCreate(price=42))
     db_booking = models.Booking(**booking.dict(exclude={'additional_service_ids'}), user_id=user_id, payment_id=db_payment.id)
     for additional_service_id in booking.additional_service_ids:
-        additional_service = get_additional_service(db, additional_service_id)
-        db_booking.additional_service.append(additional_service)
+        if additional_service_id != 0:
+            additional_service = get_additional_service(db, additional_service_id)
+            db_booking.additional_service.append(additional_service)
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)

@@ -3,7 +3,7 @@ from __future__ import annotations
 from random import randint
 
 from fastapi import Depends, FastAPI, HTTPException
-from pydantic import BaseModel
+
 from sqlalchemy.orm import Session
 
 from . import crud, models, schemas
@@ -109,8 +109,7 @@ def get_bookings(db: Session = Depends(get_db)):
     return crud.get_bookings(db)
 
 
-# FIXME ERROR
-@app.get("/users/{user_id}/bookings/{booking_id}", response_model=list[schemas.Booking])
+@app.get("/users/{user_id}/bookings/{booking_id}", response_model=schemas.Booking)
 def read_booking_user(user_id: int, booking_id: int, db: Session = Depends(get_db)):
     check_booking(booking_id, db, user_id)
     booking = crud.get_booking(db, user_id=user_id, booking_id=booking_id)

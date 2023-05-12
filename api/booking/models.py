@@ -32,8 +32,8 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    last_name = Column(String, index=True)
-    first_name = Column(String, index=True)
+    lastname = Column(String, index=True)
+    firstname = Column(String, index=True)
     age = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)

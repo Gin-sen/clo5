@@ -26,6 +26,25 @@ class Services(ServicesBase):
         orm_mode = True
 
 
+class PaymentBase(BaseModel):
+    price: int
+
+
+class PaymentCreate(PaymentBase):
+    pass
+
+
+class PaymentUpdate(PaymentBase):
+    pass
+
+
+class Payment(PaymentBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
 class BookingBase(BaseModel):
     nights: int
     numbers_people: int
@@ -36,10 +55,8 @@ class BookingCreate(BookingBase):
     additional_service_ids: list[int]
 
 
-class BookingUpdate(BaseModel):
-    nights: int
-    numbers_people: int
-    users_name: str
+class BookingUpdate(BookingBase):
+    pass
 
 
 class BoundBookingAndServices(BookingBase):
@@ -55,13 +72,17 @@ class Booking(BookingBase):
     user_id: int
     reservation_number: int
     additional_service: list[Services]
-    # payment: Payment TODO
+    payment: Payment
 
     class Config:
         orm_mode = True
 
 
 class UserBase(BaseModel):
+    firstname: str
+    lastname: str
+    age: int
+    phone: int
     email: str
 
 
@@ -71,11 +92,6 @@ class UserCreate(UserBase):
 
 class UserUpdate(UserBase):
     hashed_password: Optional[str] = None
-    firstname = str
-    lastname = str
-    age = int
-    phone = int
-    # update_date = datetime
 
 
 class UserDelete(BaseModel):
@@ -84,34 +100,8 @@ class UserDelete(BaseModel):
 
 class User(UserBase):
     id: int
-    firstname = str
-    lastname = str
-    age = int
-    phone = int
     hashed_password: str
-    created_date = datetime
-    update_date = datetime
-    # is_active: bool
-    bookings: list[Booking] = []
-
-    class Config:
-        orm_mode = True
-
-
-class PaymentBase(BaseModel):
-    price: int
-
-
-class PaymentCreate(PaymentBase):
-    pass
-
-
-class PaymentUpdate(PaymentBase):
-    pass
-
-
-class Payment(PaymentBase):
-    id: int
+    bookings: list[Booking]
 
     class Config:
         orm_mode = True
