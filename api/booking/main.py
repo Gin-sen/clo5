@@ -34,7 +34,7 @@ def get_db():
 
 @app.get("/")
 def health_check():
-    return "Healthy booking"
+    return "Healthy"
 
 
 def check_user(db, user_id):
