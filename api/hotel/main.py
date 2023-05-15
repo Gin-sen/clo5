@@ -1,9 +1,10 @@
 from os import getenv
 from typing import Annotated
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from .influx_logger import InfluxLogger
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
@@ -22,8 +23,13 @@ fake_db = {
     "bar": {"id": "bar", "title": "Bar", "description": "The bartenders"},
 }
 
-app = FastAPI()
+influx_url = getenv("INFLUX_URL", "http://influxdb.example.local")
+influx_organization = getenv("INFLUX_ORGANIZATION", "influxdata")
+influx_token = getenv("INFLUX_TOKEN", "BobbyGetToken")
+influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 
+app = FastAPI()
+influx_logger = InfluxLogger(url=influx_url, org=influx_organization, token=influx_token, bucket=influx_bucket)
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -41,8 +47,10 @@ def health_check():
 @app.get("/itemstest/{item_id}", response_model=ItemTest)
 async def read_main(item_id: str, x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
+        influx_logger.log( {"log_level": "WARN", "exception": { "status_code": 400, "detail": "Invalid X-Token header"}} )
         raise HTTPException(status_code=400, detail="Invalid X-Token header")
     if item_id not in fake_db:
+        influx_logger.log( {"log_level": "INFO", "exception": { "status_code": 404, "detail": "Item not found"}} )
         raise HTTPException(status_code=404, detail="Item not found")
     return fake_db[item_id]
 
@@ -50,8 +58,10 @@ async def read_main(item_id: str, x_token: Annotated[str | None, Header()] = Non
 @app.post("/itemstest/", response_model=ItemTest)
 async def create_item(item: ItemTest, x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
+        influx_logger.log( {"log_level": "WARN", "exception": { "status_code": 400, "detail": "Invalid X-Token header"}} )
         raise HTTPException(status_code=400, detail="Invalid X-Token header")
     if item.id in fake_db:
+        influx_logger.log( {"log_level": "ERROR", "exception": { "status_code": 400, "detail": "Item already exists"}} )
         raise HTTPException(status_code=400, detail="Item already exists")
     fake_db[item.id] = item
     return item
