@@ -41,7 +41,7 @@ services:
       - INFLUX_URL=http://influxdb:8086
       - INFLUX_ORGANIZATION=myorg
       - INFLUX_TOKEN=mytoken
-      - INFLUX_BUCKET=mybucket
+      - INFLUX_BUCKET=hotel-api-dev
     volumes:
       - ./hotel:/code/hotel
     ports:
@@ -143,7 +143,7 @@ services:
       - influxdb
     volumes:
       # Mount for telegraf config
-      - ./telegraf/mytelegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     env_file:
       - influxv2.env
 

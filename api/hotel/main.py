@@ -1,3 +1,4 @@
+from functools import lru_cache
 from os import getenv
 from typing import Annotated
 from fastapi import Depends, FastAPI, Header, HTTPException, BackgroundTasks
@@ -29,7 +30,12 @@ influx_token = getenv("INFLUX_TOKEN", "BobbyGetToken")
 influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 
 app = FastAPI()
-influx_logger = InfluxLogger(url=influx_url, org=influx_organization, token=influx_token, bucket=influx_bucket)
+
+@lru_cache
+def influx_logger():
+    return InfluxLogger(url=influx_url, organization=influx_organization, token=influx_token, bucket=influx_bucket)
+
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -45,23 +51,23 @@ def health_check():
 
 
 @app.get("/itemstest/{item_id}", response_model=ItemTest)
-async def read_main(item_id: str, x_token: Annotated[str | None, Header()] = None):
+async def read_main(item_id: str, ilogger:  Annotated[InfluxLogger, Depends(influx_logger)], x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
-        influx_logger.log( {"log_level": "WARN", "exception": { "status_code": 400, "detail": "Invalid X-Token header"}} )
+        ilogger.log( {"measurement": "exception", "tags": {"log_level": "WARN"}, "fields": { "status_code": 400, "detail": "Invalid X-Token header"}} )
         raise HTTPException(status_code=400, detail="Invalid X-Token header")
     if item_id not in fake_db:
-        influx_logger.log( {"log_level": "INFO", "exception": { "status_code": 404, "detail": "Item not found"}} )
+        ilogger.log( {"measurement": "exception", "tags": {"log_level": "INFO"}, "fields": { "status_code": 404, "detail": "Item not found"}} )
         raise HTTPException(status_code=404, detail="Item not found")
     return fake_db[item_id]
 
 
 @app.post("/itemstest/", response_model=ItemTest)
-async def create_item(item: ItemTest, x_token: Annotated[str | None, Header()] = None):
+async def create_item(item: ItemTest, ilogger:  Annotated[InfluxLogger, Depends(influx_logger)], x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
-        influx_logger.log( {"log_level": "WARN", "exception": { "status_code": 400, "detail": "Invalid X-Token header"}} )
+        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"}, "fields": { "status_code": 400, "detail": "Invalid X-Token header"}})
         raise HTTPException(status_code=400, detail="Invalid X-Token header")
     if item.id in fake_db:
-        influx_logger.log( {"log_level": "ERROR", "exception": { "status_code": 400, "detail": "Item already exists"}} )
+        ilogger.log( {"measurement": "exception", "tags": {"log_level": "ERROR"}, "fields": { "status_code": 400, "detail": "Item already exists"}} )
         raise HTTPException(status_code=400, detail="Item already exists")
     fake_db[item.id] = item
     return item
