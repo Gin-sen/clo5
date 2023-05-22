@@ -4,6 +4,7 @@ pydantic==1.10.7
 uvicorn==0.22.0
 typing==3.7.4.3
 psycopg2-binary==2.9.6
-sqlalchemy
+sqlalchemy==2.0.15
 DateTime
 influxdb-client
+aio-pika

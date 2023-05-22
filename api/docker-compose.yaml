@@ -34,6 +34,11 @@ services:
       context: hotel
       target: final
     environment:
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+      - RABBIT_USER=user
+      - RABBIT_PASS=password
+      - RABBIT_VHOST=my_vhost
       - DB_HOST=hotel.db
       - DB_PORT=5432
       - DB_USER=Bobby
@@ -172,9 +177,9 @@ services:
         ELASTIC_VERSION: ${ELASTIC_VERSION}
     init: true
     volumes:
-      - ./setup/entrypoint.sh:/entrypoint.sh:ro,Z
-      - ./setup/lib.sh:/lib.sh:ro,Z
-      - ./setup/roles:/roles:ro,Z
+      - ./tools/setup/entrypoint.sh:/entrypoint.sh:ro,Z
+      - ./tools/setup/lib.sh:/lib.sh:ro,Z
+      - ./tools/setup/roles:/roles:ro,Z
       - setup:/state:Z
     environment:
       ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-}
@@ -235,6 +240,7 @@ services:
       - k8s-cluster
     depends_on:
       - elasticsearch
+      - rabbitmq
     restart: unless-stopped
 
   kibana:
@@ -253,6 +259,18 @@ services:
     depends_on:
       - elasticsearch
     restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+        - 5672:5672
+        - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_VHOST: my_vhost
+    networks:
+      - k8s-cluster
 
 networks:
   k8s-cluster:

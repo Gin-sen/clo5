@@ -4,6 +4,8 @@ pydantic==1.10.7
 uvicorn==0.22.0
 typing==3.7.4.3
 psycopg2-binary==2.9.6
-sqlalchemy
-DateTime
+sqlalchemy~=2.0.13
+DateTime~=5.1
 influxdb-client
+pika~=1.3.2
+msgpack~=1.0.5

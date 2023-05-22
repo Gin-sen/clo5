@@ -1,18 +1,20 @@
-from functools import lru_cache
+import json
+import logging
 from os import getenv
 from typing import Annotated
-from fastapi import Depends, FastAPI, Header, HTTPException, BackgroundTasks
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from aio_pika import Message, connect_robust, DeliveryMode
 
-import influx_logger
+import utils.main
 import crud
 import models
 import schemas
 from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
-
+logger = logging.getLogger(__name__)
 
 class ItemTest(BaseModel):
     id: str
@@ -27,6 +29,12 @@ fake_db = {
     "bar": {"id": "bar", "title": "Bar", "description": "The bartenders"},
 }
 
+rabbit_host = getenv("RABBIT_HOST", "rabbitmq")
+rabbit_port = getenv("RABBIT_PORT", 5672)
+rabbit_user = getenv("RABBIT_USER", "user")
+rabbit_pass = getenv("RABBIT_PASS", "password")
+rabbit_vhost = getenv("RABBIT_VHOST",  "my_vhost")
+
 influx_url = getenv("INFLUX_URL", "http://influxdb.example.local")
 influx_organization = getenv("INFLUX_ORGANIZATION", "influxdata")
 influx_token = getenv("INFLUX_TOKEN", "BobbyGetToken")
@@ -35,11 +43,7 @@ influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 app = FastAPI()
 
 
-# @lru_cache
-# def influx_logger():
-#     return influx_logger.InfluxLogger(url=influx_url, organization=influx_organization, token=influx_token, bucket=influx_bucket)
-
-ilogger = influx_logger.InfluxLogger(
+ilogger = utils.main.InfluxLogger(
     url=influx_url,
     organization=influx_organization,
     token=influx_token,
@@ -56,8 +60,75 @@ def get_db():
 
 
 @app.get("/")
-def health_check():
+async def health_check():
+    message = Message(
+        json.dumps({"status": "Healthy"}, ensure_ascii=False).encode('utf-8'),
+        delivery_mode=DeliveryMode.PERSISTENT
+    )
+    await app.state.channel.default_exchange.publish(
+        message, routing_key="logstash"
+    )
+    logger.info(f'Sent simple json to queue logstash')
     return "Healthy"
+
+
+@app.on_event('startup')
+async def startup():
+    """
+    Executes on application startup.
+
+    Connects to RabbitMQ HOST and to the channel QUEUE_NAME.
+    """
+    app.state.connection = await connect_robust(
+        host=rabbit_host,
+        port=rabbit_port,
+        virtualhost=rabbit_vhost,
+        login=rabbit_user,
+        password=rabbit_pass,
+        connection_attempts=5,
+        retry_delay=10,
+    )
+    app.state.channel = await app.state.connection.channel()
+    logger.info(f'Connected pika producer to {rabbit_host}')
+
+    await app.state.channel.declare_queue("logstash", durable=True)
+
+
+@app.on_event('startup')
+async def startup():
+    """
+    Executes on application startup.
+
+    Connects to RabbitMQ HOST and to the channel QUEUE_NAME.
+    """
+    app.state.connection = await connect_robust(
+        host=rabbit_host,
+        port=rabbit_port,
+        virtualhost=rabbit_vhost,
+        login=rabbit_user,
+        password=rabbit_pass,
+        connection_attempts=5,
+        retry_delay=10,
+    )
+    app.state.channel = await app.state.connection.channel()
+    logger.info(f'Connected pika producer to {rabbit_host}')
+
+    await app.state.channel.declare_queue("logstash", durable=True)
+
+
+@app.on_event('shutdown')
+async def shutdown():
+    """
+    Executes on application shutdown.
+
+    Disconnects from RabbitMQ HOST.
+    """
+    if not app.state.channel.is_closed:
+        await app.state.channel.close()
+        logger.debug('channel closed')
+    if not app.state.connection.is_closed:
+        await app.state.connection.close()
+        logger.debug('connection closed')
 
 
 @app.get("/itemstest/{item_id}", response_model=ItemTest)
