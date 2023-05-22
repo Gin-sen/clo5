@@ -1,13 +1,15 @@
 import json
 import logging
 from os import getenv
-from typing import Annotated
+from typing import Annotated, Any
 from fastapi import Depends, FastAPI, Header, HTTPException
+from starlette.datastructures import State
+
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from aio_pika import Message, connect_robust, DeliveryMode
+from aio_pika import connect_robust, Message, DeliveryMode
 
-import utils.main
+from utils.main import InfluxLogger
 import crud
 import models
 import schemas
@@ -43,7 +45,7 @@ influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 app = FastAPI()
 
 
-ilogger = utils.main.InfluxLogger(
+ilogger = InfluxLogger(
     url=influx_url,
     organization=influx_organization,
     token=influx_token,
@@ -59,16 +61,18 @@ def get_db():
         db.close()
 
 
-@app.get("/")
-async def health_check():
+async def logstash_log(log: Any):
     message = Message(
-        json.dumps({"status": "Healthy"}, ensure_ascii=False).encode('utf-8'),
+        json.dumps(log, ensure_ascii=False).encode('utf-8'),
         delivery_mode=DeliveryMode.PERSISTENT
     )
     await app.state.channel.default_exchange.publish(
         message, routing_key="logstash"
     )
-    logger.info(f'Sent simple json to queue logstash')
+
+@app.get("/")
+async def health_check():
+    await logstash_log({"status": "Healthy"})
     return "Healthy"
 
 
@@ -135,13 +139,17 @@ async def shutdown():
 async def read_main(item_id: str,
                     x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
+        ex = HTTPException(status_code=400, detail="Invalid X-Token header")
+        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "WARN"})
         ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
                      "fields": {"status_code": 400, "detail": "Invalid X-Token header"}})
-        raise HTTPException(status_code=400, detail="Invalid X-Token header")
+        raise ex
     if item_id not in fake_db:
+        ex = HTTPException(status_code=404, detail="Item not found")
+        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "INFO"})
         ilogger.log({"measurement": "exception", "tags": {"log_level": "INFO"},
                      "fields": {"status_code": 404, "detail": "Item not found"}})
-        raise HTTPException(status_code=404, detail="Item not found")
+        raise ex
     return fake_db[item_id]
 
 
@@ -149,13 +157,17 @@ async def read_main(item_id: str,
 async def create_item(item: ItemTest,
                       x_token: Annotated[str | None, Header()] = None):
     if x_token != fake_secret_token:
+        ex = HTTPException(status_code=400, detail="Invalid X-Token header")
+        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "WARN"})
         ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
                      "fields": {"status_code": 400, "detail": "Invalid X-Token header"}})
-        raise HTTPException(status_code=400, detail="Invalid X-Token header")
+        raise ex
     if item.id in fake_db:
+        ex = HTTPException(status_code=400, detail="Item already exists")
+        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "ERROR"})
         ilogger.log({"measurement": "exception", "tags": {"log_level": "ERROR"},
                      "fields": {"status_code": 400, "detail": "Item already exists"}})
-        raise HTTPException(status_code=400, detail="Item already exists")
+        raise ex
     fake_db[item.id] = item
     return item
 
