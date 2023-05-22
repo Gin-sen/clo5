@@ -3,7 +3,7 @@ from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
-class InfluxLogger():
+class InfluxLogger:
     url: str
     organization: str
     token: str
@@ -22,14 +22,13 @@ class InfluxLogger():
             if bucket_api.find_bucket_by_name(self.bucket) is None:
                 bucket_api.create_bucket(bucket_name=self.bucket, org=self.organization)
 
-
     def log(self, log: Any | None = None):
         with InfluxDBClient(url=self.url, token=self.token, org=self.organization) as client:
-            #instantiate the WriteAPI
+            # instantiate the WriteAPI
             write_api = client.write_api(write_options=SYNCHRONOUS)
             write_api.write(
-                bucket = self.bucket,
-                org = self.organization,
-                record = log
+                bucket=self.bucket,
+                org=self.organization,
+                record=log
             )
             write_api.close()
