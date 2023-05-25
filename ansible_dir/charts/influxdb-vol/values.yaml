@@ -1,0 +1,14 @@
+# Default values for influxdb-vol.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+pvc:
+  resources:
+    requests:
+      storage: 5Gi
+
+pv:
+  capacity:
+    storage: 5Gi
+  hostPath:
+    path: "/data/nfs/influxdb2"

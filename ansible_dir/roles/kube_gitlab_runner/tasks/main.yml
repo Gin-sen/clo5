@@ -1,0 +1,37 @@
+---
+# tasks file for roles/kube_gitlab_runner
+- block:
+  - name: Get Gitlab Runner Token
+    shell: gitlab-rails runner -e production "puts Gitlab::CurrentSettings.current_application_settings.runners_registration_token"
+    register: gitlab_registration_token
+
+  - name: Install gitlab repo
+    shell: "helm repo add gitlab https://charts.gitlab.io"
+    
+  - name: Update helm repo
+    shell: helm repo update
+
+  - name: Get Docker registry ingress ip
+    shell: kubectl get ingress -n docker-registry my-registry -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+    register: ingress_ip
+    until: ingress_ip.stdout in groups['kubeworkers']
+    retries: 90
+    delay: 15
+
+
+  - name: Template Gitlab runner config file
+    template:
+      src: gitlab-runner.yaml.j2
+      dest: gitlab-runner.yaml
+      owner: root
+      group: root
+      mode: "0444"
+    tags: gitlab-runner
+
+  - name: Gitlab runner install
+    shell: helm upgrade --install --create-namespace --namespace gitlab-runner -f gitlab-runner.yaml gitlab-runner gitlab/gitlab-runner
+    tags: gitlab-runner
+    
+
+  when:
+    - inventory_hostname in groups['kubemaster']

@@ -31,6 +31,13 @@
 ##! https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html
 external_url '{{ ext_gitlab_url }}'
 
+prometheus['flags'] = {
+  'storage.tsdb.path' => "/var/opt/gitlab/prometheus/data",
+  'storage.tsdb.retention.time' => "3d",
+  'storage.tsdb.retention.size' => "2GB",
+  'config.file' => "/var/opt/gitlab/prometheus/prometheus.yml"
+}
+
 # nginx['listen_addresses'] = ["0.0.0.0", "[::]"]
 # registry_nginx['listen_addresses'] = ['*', '[::]']
 # mattermost_nginx['listen_addresses'] = ['*', '[::]']

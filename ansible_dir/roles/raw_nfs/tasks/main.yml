@@ -1,0 +1,32 @@
+---
+# tasks file for roles/raw_nfs
+
+- set_fact:
+    nfs_clients: "{{ groups['kubernetes'] | difference(groups['nfs_server']) }}"
+
+- block:
+    - debug:
+        msg:
+          - "{{ groups['nfs_server'] }}"
+    
+    - include_tasks:
+        file: nfs-server.yml
+  when: inventory_hostname not in nfs_clients
+  
+- block:
+    - debug:
+        msg:
+          - "{{ item }}"
+      with_items: "{{ groups['kubernetes'] | difference(groups['nfs_server']) }}"
+    
+    - include_tasks:
+        file: nfs-client.yml
+  when: inventory_hostname in nfs_clients
+
+# - include_tasks:
+#     file: nfs-server.yml
+#   when: inventory_hostname == nfs_server
+  
+# - include_tasks:
+#     file: nfs-client.yml
+#   when: inventory_hostname != nfs_server

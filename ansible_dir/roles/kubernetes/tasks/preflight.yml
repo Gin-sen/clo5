@@ -30,6 +30,13 @@
 #     regexp: '^172.16.228.81 vm081.etna.local vm081$'
 #     line: 172.16.228.81 vm081.etna.local vm081
 
+# https://github.com/longhorn/longhorn/issues/956
+# into
+# https://github.com/k3s-io/k3s/issues/1114
+# faire 
+# update-alternatives --set iptables /usr/sbin/iptables-legacy
+# pour fix une confusion debian/kube 
+
 - name: Install openssl
   ansible.builtin.apt: 
     name: 

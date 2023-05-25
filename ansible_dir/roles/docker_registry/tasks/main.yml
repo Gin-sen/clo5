@@ -1,33 +1,102 @@
 ---
 # tasks file for docker_registry
 
-- name: Check cluster status
-  ansible.builtin.shell: kubectl get nodes
-  ignore_errors: true
-  register: cluster_exist
+# - name: Create /data/nfs/registry directory for NFS server
+#   ansible.builtin.file: 
+#     name: /data/nfs/registry
+#     state: directory
+#   when: inventory_hostname in groups['kubeworkers'][0]
 
-- debug:
-    msg: 
-      - "{{ cluster_exist.rc }}"
 
 - block:
 
-  - include_tasks:
-      file: create-upload-certs.yml
+  - name: Check cluster status
+    ansible.builtin.shell: kubectl get nodes
+    ignore_errors: true
+    register: cluster_exist
 
-  - name: Create /tmp/charts directory
-    ansible.builtin.file: 
-      name: /tmp/charts
-      state: directory
+  - debug:
+      msg: 
+        - "{{ cluster_exist.rc }}"
 
-  - name: Synchronization of charts/my-registry on the control machine to dest on the remote hosts
-    ansible.posix.synchronize:
-      src: ./charts/my-registry
-      dest: /tmp/charts/
+  - block:
 
-  - name: Upgrade docker_registry with helm
-    shell: helm upgrade --install --wait --atomic -n docker-registry --create-namespace docker-registry /tmp/charts/my-registry
+    - include_tasks:
+        file: create-upload-certs.yml
 
-  when: 
-    - cluster_exist.rc == 0
-  ignore_errors: "{{ ansible_check_mode }}"
+    - name: Create /tmp/charts directory
+      ansible.builtin.file: 
+        name: /tmp/charts
+        state: directory
+
+    - name: Synchronization of charts/my-registry on the control machine to dest on the remote hosts
+      ansible.posix.synchronize:
+        src: ./charts/my-registry
+        dest: /tmp/charts/
+
+    - name: Upgrade docker_registry with helm
+      shell: helm upgrade --install --wait --atomic -n docker-registry --create-namespace my-registry /tmp/charts/my-registry
+
+
+    - name: Get Docker registry ingress ip (voir si on devrais pas set les /etc/hosts + conf partout ici)
+      shell: kubectl get ingress -n docker-registry my-registry -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+      register: ingress_ip
+      until: ingress_ip.stdout in groups['kubeworkers']
+      retries: 90
+      delay: 15
+
+    - set_fact:
+        registry_ip: "{{ ingress_ip.stdout }}"
+
+    when: 
+      - cluster_exist.rc == 0
+    ignore_errors: "{{ ansible_check_mode }}"
+
+  when:
+    - inventory_hostname in groups['kubemaster']
+
+- block:
+
+  - name: Get Docker registry ingress ip (voir si on devrais pas set les /etc/hosts + conf partout ici)
+    shell: kubectl get ingress -n docker-registry my-registry -o jsonpath="{.status.loadBalancer.ingress[0].ip}"
+    register: ingress_ip
+    until: ingress_ip.stdout in groups['kubeworkers']
+    retries: 90
+    delay: 15
+
+  - set_fact:
+      registry_ip: "{{ ingress_ip.stdout }}"
+  when:
+    - inventory_hostname not in groups['kubemaster']
+
+
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: absent
+    regexp: 'registry.example.local'
+
+
+- name: Make sure hosts is in /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    state: present
+    line: "{{ registry_ip }} registry.example.local"
+
+
+- name: Template containerd config file
+  template:
+    src: containerd-config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
+
+
+- name: restart and enable containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+    daemon_reload: true
+  

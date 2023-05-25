@@ -17,6 +17,10 @@ data:
           rootdirectory: /var/lib/registry
       http:
         addr: :5000
+        secret: changeme
+        tls:
+          certificate: /certs/tls.crt
+          key: /certs/tls.key
         headers:
           X-Content-Type-Options: [nosniff]
       health:

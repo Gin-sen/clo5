@@ -24,6 +24,10 @@ Ajouter ces lignes dans votre `/etc/hosts` (ou `%System%/drivers/etc/hosts` pour
 ```txt
 172.16.228.15 gitlab.example.local
 172.16.228.81 registry.example.local
+172.16.228.81 influxdb.example.local
+172.16.228.81 hotel-api.example.local
+172.16.228.81 booking-api.example.local
+172.16.228.81 gateway-api.example.local
 ```
 ### Gitlab
 
@@ -34,6 +38,19 @@ Login / mdp prof [Gitlab](http://gitlab.example.local/) :
 `login_ETNA` / `P@SSW0RD`
 
 Repository : http://gitlab.example.local/gitlab-instance-352af650/clo5
+
+
+### Tick stack
+
+
+Login / mdp admin [InfluxDb2](http://influxdb.example.local/) :
+`admin` / `em03gDebt6evILbFhrntCA8GGXdSuBke`
+
+Pour retrouver le mot de passe (dans le cas où le readme n'est pas à jour) :
+```bash
+kubectl get secret -n monitoring influxdb2-auth -o jsonpath='{.data.admin-password}' | base64 --decode
+```
+
 
 ### Utiliser `kubectl`
 
@@ -94,9 +111,7 @@ sudo apt-get install -y sshpass
 
 Dans le dossier `roles` :
 ```bash
-ansible-galaxy role init gitlab
-ansible-galaxy role init kubernetes
-ansible-galaxy role init docker_registry
+ansible-galaxy role init <nom du role>
 ```
 
 ### Création d'un mot de passe dans le Vault
@@ -161,12 +176,54 @@ sudo reboot now
 ```
 
 
-## Notes 
+## Notes / TODO
 PB de certificat depuis le gitlab runner vers le registry. Fix + patch rapide dans les notes : https://docs.gitlab.com/runner/configuration/tls-self-signed.html#supported-options-for-self-signed-certificates-targeting-the-gitlab-server
 
 Conf registry (tls): https://docs.docker.com/registry/configuration/#http
 
 Enable registry dans gitlab ? :  https://docs.gitlab.com/ee/administration/packages/container_registry.html#enable-the-container-registry
+
+Client python pour log influx : https://github.com/influxdata/influxdb-client-python
+
+TODOs:
+- reorg ansible
+- secret pour registry
+- mirror gitlab local vers gitlab etna
+- push https registry
+- test de run des TU dans pipeline
+- ansible influxdb :
+  - récent : https://github.com/influxdata/helm-charts
+  - ancien exemple : https://github.com/influxdata/kube-influxdb
+- log python
+- log db
+
+kubectl get nodes -o jsonpath="{.items[*].status.conditions[*].reason}"
+### créer un secret dockerconfig pour se connecter registry
+
+kubectl create secret docker-registry regcred --docker-server=https://registry.example.local --docker-username=places_m --docker-password=013576 --docker-email=places_m@etna-alternance.net
+
+kubectl get secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode
+kubectl get secret regcred --output="jsonpath={.data.\.dockerconfigjson}" | base64 --decode | sed -r "s/.*\"auth\":\"(.+)\".+/\1/"
+
+### Tick Stack
+
+
+![Fonctionnement du stack TICK]()
+
+Le stack InfluxData T.I.C.K. est composé comme suit :
+
+Version |Component  | Role                       | Doc helm
+---------|-----------|-------------------------- |-------------------
+1.26      |Telegraf   | Collecte les données.      | https://github.com/influxdata/helm-charts/tree/master/charts/telegraf-ds
+2.3.0      |InfluxDB2   | Stockage des données       | https://github.com/influxdata/helm-charts/tree/master/charts/influxdb2
+<!-- 1.9.4      |Chronograf | Visualisation des données  | https://github.com/influxdata/helm-charts/tree/master/charts/chronograf
+1.6.4      |Kapacitor  | Création d'alerte          | https://github.com/influxdata/helm-charts/tree/13ec6ee62b7c91f44d87e68048b848a89a9fbd9a/charts/kapacitor -->
+
+
+Deployer la plateforme InfluxData sur un cluster Kubernetes : https://docs.influxdata.com/platform/install-and-deploy/deploying/kubernetes/
+
+
+
 
 
 

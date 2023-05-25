@@ -1,0 +1,138 @@
+---
+# tasks file for roles/kube_tickstack
+
+- name: Docker pull
+  shell: "docker pull {{ item }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  loop:
+    - influxdb:2.3.0-alpine
+    - chronograf:1.9.4
+    - kapacitor:1.6.4-alpine
+    - telegraf:1.26-alpine
+    - kiwigrid/k8s-sidecar:0.1.116
+
+
+- name: Docker tag
+  shell: "docker tag {{ item.repo }} registry.example.local/{{ item.name }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  loop:
+    - { repo: influxdb:2.3.0-alpine, name: influxdb:2.3.0-alpine }
+    - { repo: chronograf:1.9.4, name: chronograf:1.9.4 }
+    - { repo: kapacitor:1.6.4-alpine, name: kapacitor:1.6.4-alpine }
+    - { repo: telegraf:1.26-alpine, name: telegraf:1.26-alpine }
+    - { repo: kiwigrid/k8s-sidecar:0.1.116, name: k8s-sidecar:0.1.116 }
+
+
+- name: Docker push
+  shell: "docker push registry.example.local/{{ item }}"
+  delegate_to: localhost
+  run_once: true
+  become: false
+  loop:
+    - influxdb:2.3.0-alpine
+    - chronograf:1.9.4
+    - kapacitor:1.6.4-alpine
+    - telegraf:1.26-alpine
+    - k8s-sidecar:0.1.116
+
+- block:
+  - name: Create /tmp/charts directory
+    ansible.builtin.file: 
+      name: /tmp/charts
+      state: directory
+
+  - name: Synchronization of charts/influxdb-vol on the control machine to dest on the remote hosts
+    ansible.posix.synchronize:
+      src: ./charts/influxdb-vol
+      dest: /tmp/charts/
+
+  ## Not needed in Tick Stack V2
+  # - name: Synchronization of charts/kapacitor-vol on the control machine to dest on the remote hosts
+  #   ansible.posix.synchronize:
+  #     src: ./charts/kapacitor-vol
+  #     dest: /tmp/charts/
+
+  - name: Upgrade influxdb-vol with helm
+    shell: helm upgrade --install --wait --atomic -n monitoring --create-namespace influxdb-vol /tmp/charts/influxdb-vol
+
+  ## Not needed in Tick Stack V2
+  # - name: Upgrade kapacitor-vol with helm
+  #   shell: helm upgrade --install --wait --atomic -n monitoring --create-namespace kapacitor-vol /tmp/charts/kapacitor-vol
+
+  - name: Install gitlab repo
+    shell: "helm repo add influxdata https://helm.influxdata.com/"
+    
+  - name: Update helm repo
+    shell: helm repo update
+  
+  - name: Template influxdb config file
+    template:
+      src: influxdb2-values.yaml.j2
+      dest: influxdb2-values.yaml
+      owner: root
+      group: root
+      mode: "0444"
+
+  - name: influxdb install
+    shell: helm upgrade --install --create-namespace --namespace monitoring -f influxdb2-values.yaml influxdb2 influxdata/influxdb2
+
+  - name: Get admin token
+    shell: kubectl get secret -n monitoring influxdb2-auth -o jsonpath='{.data.admin-token}' | base64 --decode
+    register: influxdb2_admin_token
+
+  - name: Get admin password
+    shell: kubectl get secret -n monitoring influxdb2-auth -o jsonpath='{.data.admin-password}' | base64 --decode
+    register: influxdb2_admin_password
+
+  - name: Delete if secret exists
+    shell: kubectl delete secret influxdb2-auth-for-tick -n monitoring 
+    ignore_errors: true
+
+  - name: Create secret for TICK
+    shell: "kubectl create secret generic influxdb2-auth-for-tick -n monitoring --from-literal=influxdb-user=admin --from-literal=influxdb-password={{ influxdb2_admin_password.stdout }}"
+  
+  ## Not needed in Tick Stack V2
+  # - name: Template kapacitor config file
+  #   template:
+  #     src: kapacitor-values.yaml.j2
+  #     dest: kapacitor-values.yaml
+  #     owner: root
+  #     group: root
+  #     mode: "0444"
+  
+  # - name: Template chronograf config file
+  #   template:
+  #     src: chronograf-values.yaml.j2
+  #     dest: chronograf-values.yaml
+  #     owner: root
+  #     group: root
+  #     mode: "0444"
+  
+  - name: Template telegraf-ds config file
+    template:
+      src: telegraf-ds-values.yaml.j2
+      dest: telegraf-ds-values.yaml
+      owner: root
+      group: root
+      mode: "0444"
+
+
+  - name: telegraf-ds install
+    shell: helm upgrade --install --create-namespace --namespace monitoring -f telegraf-ds-values.yaml telegraf-ds influxdata/telegraf-ds
+
+
+  ## Not needed in Tick Stack V2
+  # - name: kapacitor install
+  #   shell: helm upgrade --install --create-namespace --namespace monitoring -f kapacitor-values.yaml kapacitor influxdata/kapacitor
+
+
+  # - name: chronograf install
+  #   shell: helm upgrade --install --create-namespace --namespace monitoring -f chronograf-values.yaml chronograf influxdata/chronograf
+
+
+  when:
+    - inventory_hostname in groups['kubemaster']

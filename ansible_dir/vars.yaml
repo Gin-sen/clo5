@@ -1,7 +1,6 @@
 ---
 
 gitlab_ip: http://172.16.228.15
-gitlab_registration_token: tPbCbwfPtXFUuzZbCnT4
 ext_gitlab_url: http://gitlab.example.local
 
 kubernetes_version: 1.27.1

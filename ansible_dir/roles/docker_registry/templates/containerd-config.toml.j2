@@ -1,0 +1,21 @@
+version = 2
+plugin_dir = "/opt/cni/bin"
+[plugins]
+  [plugins."io.containerd.grpc.v1.cri"]
+    sandbox_image = "registry.k8s.io/pause:3.9"
+    [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+      runtime_type = "io.containerd.runc.v2"
+      cni_conf_dir = "/etc/cni/net.d"
+      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+        SystemdCgroup = true
+  [plugins."io.containerd.grpc.v1.cri".cni]
+    bin_dir = "/opt/cni/bin"
+    conf_dir = "/etc/cni/net.d"
+
+  [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.example.local".tls]
+      insecure_skip_verify = true
+    [plugins."io.containerd.grpc.v1.cri".registry.configs."registry.example.local".auth]
+      auth = "cGxhY2VzX206MDEzNTc2"
+  [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."registry.example.local"]
+      endpoint = ["http://registry.example.local"]

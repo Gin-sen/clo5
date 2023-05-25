@@ -1,0 +1,32 @@
+---
+- name: install nfs-kernel-server
+  apt:
+    name: nfs-kernel-server
+    state: present
+    update_cache: yes
+
+- name: Create a mountable directory if it does not exist
+  file:
+    path: /data/nfs
+    state: directory
+    owner: root
+    group: root
+    mode: '07774'
+
+- name: Copy exports file.
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Reload service nfs-kernel-server
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: reloaded
+
+- name: Restart service nfs-kernel-server
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: restarted
