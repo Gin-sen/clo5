@@ -9,8 +9,26 @@
   ansible.builtin.shell: kubectl --kubeconfig=/etc/kubernetes/kubelet.conf get nodes
   ignore_errors: true
   register: cluster_joined
-  
-  
+
+- name: Create .kube folder
+  ansible.builtin.file: 
+    name: "{{ item.home }}"
+    state: directory
+    owner: "{{ item.owner }}"
+  loop:
+    - { home: /root/.kube, owner: root }
+    - { home: /home/places_m/.kube, owner: places_m }
+
+- name: Copy Kube config
+  ansible.builtin.copy:
+    src: ./kubeconfig.yaml
+    dest: "{{ item.home }}"
+    mode: '0700'
+    owner: "{{ item.owner }}"
+  loop:
+    - { home: /root/.kube/config, owner: root }
+    - { home: /home/places_m/.kube/config, owner: places_m }
+
 - block:
   - set_fact:
       api_server_endpoint: "{{ kubernetes_init_host }}"

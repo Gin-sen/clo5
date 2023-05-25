@@ -87,12 +87,13 @@
 
 - name: start and enable containerd & systemd-resolved
   ansible.builtin.systemd:
-    name: 
-      - containerd
-      - systemd-resolved
+    name: "{{ item }}"
     state: restarted
     enabled: yes
     daemon_reload: true
+  loop:
+    - containerd
+    - systemd-resolved
 
 - name: Force all notified handlers to run now
   meta: flush_handlers

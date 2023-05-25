@@ -100,29 +100,3 @@
 
 - name: Upload secret
   shell: kubectl create secret tls -n ingress-nginx tls-common-client-secret --cert=/tmp/tls-common/client-certificate.cert --key=/tmp/tls-common/client-certificate.key
-
-- name: Install Longhorn ans gitlab repo
-  shell: "helm repo add {{ item }}"
-  loop:
-    - longhorn https://charts.longhorn.io
-    - gitlab https://charts.gitlab.io
-  
-- name: Update helm repo
-  shell: helm repo update
-
-# - name: Longhorn install
-#   shell: helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace --version 1.4.1
-
-- name: Template Gitlab runner config file
-  template:
-    src: gitlab-runner.yaml.j2
-    dest: gitlab-runner.yaml
-    owner: root
-    group: root
-    mode: "0444"
-  tags: gitlab-runner
-
-- name: Gitlab runner install
-  shell: helm upgrade --install --create-namespace --namespace gitlab-runner -f gitlab-runner.yaml gitlab-runner gitlab/gitlab-runner
-  tags: gitlab-runner
-  

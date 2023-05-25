@@ -1,0 +1,11 @@
+
+pvc:
+  resources:
+    requests:
+      storage: 3Gi
+
+pv:
+  capacity:
+    storage: 3Gi
+  hostPath:
+    path: "/data/nfs/kapacitor"

@@ -43,7 +43,7 @@
         src: /etc/kubernetes/admin.conf
         dest: "{{ item.path }}"
         remote_src: yes
-        mode: '0644'
+        mode: '0600'
         owner: "{{ item.name }}"
       loop:
         - { name: "{{ ansible_ssh_user }}", path: "/home/{{ ansible_ssh_user }}/.kube/config" }
@@ -54,7 +54,7 @@
       register: kubeconfig_file
 
     - name: Copy kube config to local file.
-      local_action: copy content="{{ kubeconfig_file.stdout_lines|join('\n') }}" dest="./kubeconfig.yaml" mode=0777
+      local_action: copy content="{{ kubeconfig_file.stdout_lines|join('\n') }}" dest="./kubeconfig.yaml" mode=0400
       become: false
 
     - name: Get the token for joining the worker nodes
