@@ -9,7 +9,7 @@ services:
     networks:
       - k8s-cluster
     depends_on:
-      # - booking.db
+      - booking.db
       - hotel.db
 
   hotel.db:
@@ -76,17 +76,17 @@ services:
   #   depends_on:
   #     - hotel.db
 
-  # booking.db:
-  #   image: postgres:13-alpine
-  #   restart: always
-  #   environment:
-  #     - POSTGRES_USER=Bobby
-  #     - POSTGRES_PASSWORD=BR
-  #     - POSTGRES_DB=booking-db
-  #   volumes:
-  #     - db-data-hotel:/var/lib/postgresql/data
-  #   ports:
-  #     - "5445:5432"
+  booking.db:
+   image: postgres:13-alpine
+   restart: always
+   environment:
+     - POSTGRES_USER=Bobby
+     - POSTGRES_PASSWORD=BR
+     - POSTGRES_DB=booking-db
+   volumes:
+     - db-data-booking:/var/lib/postgresql/data
+   ports:
+     - "5445:5432"
 
   # booking.api:
   #   image: booking-api
@@ -281,4 +281,4 @@ volumes:
   setup:
   influxdbv2:
   db-data-hotel:
-  # db-data-booking:
+  db-data-booking:
