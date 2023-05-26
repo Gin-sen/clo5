@@ -18,6 +18,7 @@ from database import SessionLocal, engine
 models.Base.metadata.create_all(bind=engine)
 logger = logging.getLogger(__name__)
 
+
 class ItemTest(BaseModel):
     id: str
     title: str
@@ -35,7 +36,7 @@ rabbit_host = getenv("RABBIT_HOST", "rabbitmq")
 rabbit_port = getenv("RABBIT_PORT", 5672)
 rabbit_user = getenv("RABBIT_USER", "user")
 rabbit_pass = getenv("RABBIT_PASS", "password")
-rabbit_vhost = getenv("RABBIT_VHOST",  "my_vhost")
+rabbit_vhost = getenv("RABBIT_VHOST", "my_vhost")
 
 influx_url = getenv("INFLUX_URL", "http://influxdb.example.local")
 influx_organization = getenv("INFLUX_ORGANIZATION", "influxdata")
@@ -43,7 +44,6 @@ influx_token = getenv("INFLUX_TOKEN", "BobbyGetToken")
 influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 
 app = FastAPI()
-
 
 ilogger = InfluxLogger(
     url=influx_url,
@@ -61,6 +61,24 @@ def get_db():
         db.close()
 
 
+def check_hotel(db, hotel_id):
+    hotel = crud.get_hotel(db, hotel_id=hotel_id)
+    if hotel is None:
+        raise HTTPException(status_code=404, detail="Hotel not found")
+
+
+def check_category(db, category_id):
+    hotel = crud.get_category(db, category_id=category_id)
+    if hotel is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+
+def check_room(db, room_id):
+    room = crud.get_room(db, room_id=room_id)
+    if room is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+
+
 async def logstash_log(log: Any):
     message = Message(
         json.dumps(log, ensure_ascii=False).encode('utf-8'),
@@ -69,6 +87,7 @@ async def logstash_log(log: Any):
     await app.state.channel.default_exchange.publish(
         message, routing_key="logstash"
     )
+
 
 @app.get("/")
 async def health_check():
@@ -235,3 +254,21 @@ def create_room_for_hotel(
 def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     rooms = crud.get_rooms(db, skip=skip, limit=limit)
     return rooms
+
+
+@app.delete("/hotels/{hotel_id}")
+def delete_user(hotel_id: int, db: Session = Depends(get_db)):
+    check_hotel(db, hotel_id)
+    return crud.delete_hotel(db, hotel_id=hotel_id)
+
+
+@app.delete("/categories/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    check_category(db, category_id)
+    return crud.delete_category(db, category_id=category_id)
+
+
+@app.delete("/rooms/{room_id}")
+def delete_category(room_id: int, db: Session = Depends(get_db)):
+    check_room(db, room_id)
+    return crud.delete_room(db, room_id=room_id)

@@ -28,6 +28,10 @@ def get_category(db: Session, category_id: int):
     return db.query(models.CategoryRoom).filter(models.CategoryRoom.id == category_id).first()
 
 
+def get_room(db: Session, room_id: int):
+    return db.query(models.Room).filter(models.Room.id == room_id).first()
+
+
 def get_category_by_name(db: Session, name: str):
     return db.query(models.CategoryRoom).filter(models.CategoryRoom.name == name).first()
 
@@ -53,4 +57,25 @@ def create_hotel_room(db: Session, room: schemas.RoomCreate, hotel_id: int):
     db.add(db_room)
     db.commit()
     db.refresh(db_room)
+    return db_room
+
+
+def delete_hotel(db: Session, hotel_id: int):
+    db_hotel = get_hotel(db, hotel_id)
+    db.delete(db_hotel)
+    db.commit()
+    return db_hotel
+
+
+def delete_category(db: Session, category_id: int):
+    db_category = get_category(db, category_id)
+    db.delete(db_category)
+    db.commit()
+    return db_category
+
+
+def delete_room(db: Session, room_id: int):
+    db_room = get_room(db, room_id)
+    db.delete(db_room)
+    db.commit()
     return db_room
