@@ -58,23 +58,23 @@ services:
       - hotel.db
       - influxdb
 
-  # hotel.api-test:
-  #   image: hotel-api-test
-  #   restart: "no"
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: hotel
-  #     target: test
-  #   environment:
-  #     - DB_HOST=hotel.db
-  #     - DB_PORT=5432
-  #     - DB_USER=Bobby
-  #     - DB_PASS=BR
-  #     - DB_NAME=hotel-db
-  #   volumes:
-  #     - ./hotel:/code/hotel
-  #   depends_on:
-  #     - hotel.db
+  hotel.api-test:
+     image: hotel-api-test
+     restart: "no"
+     build:
+       dockerfile: Dockerfile
+       context: hotel
+       target: test
+     environment:
+       - DB_HOST=hotel.db
+       - DB_PORT=5432
+       - DB_USER=Bobby
+       - DB_PASS=BR
+       - DB_NAME=hotel-db
+     volumes:
+       - ./hotel:/code/hotel
+     depends_on:
+       - hotel.db
 
   booking.db:
    image: postgres:13-alpine
@@ -85,50 +85,52 @@ services:
      - POSTGRES_DB=booking-db
    volumes:
      - db-data-booking:/var/lib/postgresql/data
+   networks:
+     - k8s-cluster
    ports:
      - "5445:5432"
 
-  # booking.api:
-  #   image: booking-api
-  #   restart: on-failure
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: booking
-  #     target: final
-  #   environment:
-  #     - DB_HOST=booking.db
-  #     - DB_PORT=5432
-  #     - DB_USER=Bobby
-  #     - DB_PASS=BR
-  #     - DB_NAME=booking-db
-    # networks:
-    #   - k8s-cluster
-  #   volumes:
-  #     - ./hotel:/code/booking
-  #   ports:
-  #     - "8003:80"
-  #   depends_on:
-  #     - booking.db
+  booking.api:
+     image: booking-api
+     restart: on-failure
+     build:
+       dockerfile: Dockerfile
+       context: booking
+       target: final
+     environment:
+       - DB_HOST=booking.db
+       - DB_PORT=5432
+       - DB_USER=Bobby
+       - DB_PASS=BR
+       - DB_NAME=booking-db
+     networks:
+       - k8s-cluster
+     volumes:
+       - ./hotel:/code/booking
+     ports:
+       - "8003:80"
+     depends_on:
+       - booking.db
 
-  # booking.api-test:
-  #   image: booking-api-test
-  #   restart: "no"
-  #   build:
-  #     dockerfile: Dockerfile
-  #     context: booking
-  #     target: test
-  #   environment:
-  #     - DB_HOST=booking.db
-  #     - DB_PORT=5432
-  #     - DB_USER=Bobby
-  #     - DB_PASS=BR
-  #     - DB_NAME=booking-db
-    # networks:
-    #   - k8s-cluster
-  #   volumes:
-  #     - ./booking:/code/booking
-  #   depends_on:
-  #     - booking.db
+  booking.api-test:
+     image: booking-api-test
+     restart: "no"
+     build:
+       dockerfile: Dockerfile
+       context: booking
+       target: test
+     environment:
+       - DB_HOST=booking.db
+       - DB_PORT=5432
+       - DB_USER=Bobby
+       - DB_PASS=BR
+       - DB_NAME=booking-db
+     networks:
+       - k8s-cluster
+     volumes:
+       - ./booking:/code/booking
+     depends_on:
+       - booking.db
 
   influxdb:
     image: influxdb:2.6-alpine
