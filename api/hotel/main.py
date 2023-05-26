@@ -191,6 +191,7 @@ async def create_item(item: ItemTest,
     return item
 
 
+# -------HOTEL------- #
 @app.post("/hotels/", response_model=schemas.Hotel)
 def create_hotel(hotel: schemas.HotelCreate, db: Session = Depends(get_db)):
     db_hotel = crud.get_hotel_by_name(db, name=hotel.name)
@@ -217,6 +218,25 @@ def read_hotel(hotel_id: int, db: Session = Depends(get_db)):
     return db_hotel
 
 
+        
+@app.delete("/hotels/{hotel_id}")
+def delete_user(hotel_id: int, db: Session = Depends(get_db)):
+    check_hotel(db, hotel_id)
+    return crud.delete_hotel(db, hotel_id=hotel_id)
+
+
+@app.put("/hotel/{hotel_id}", response_model=schemas.Hotel)
+def update_hotel(hotel_id: int, hotel: schemas.HotelUpdate, db: Session = Depends(get_db)):
+    db_hotel = crud.get_hotel(db, hotel_id=hotel_id)
+    if db_hotel is None:
+        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
+                     "fields": {"status_code": 404, "detail": "Hotel not found"}})
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    my_hotel = crud.update_hotel(db, hotel_id=hotel_id, hotel=hotel)
+    return my_hotel
+
+
+# -------CATEGORY------- #
 @app.post("/categories/", response_model=schemas.CategoryRoom)
 def create_category(category: schemas.CategoryRoomCreate, db: Session = Depends(get_db)):
     db_category = crud.get_category_by_name(db, name=category.name)
@@ -243,6 +263,24 @@ def read_category(category_id: int, db: Session = Depends(get_db)):
     return db_category
 
 
+@app.delete("/categories/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    check_category(db, category_id)
+    return crud.delete_category(db, category_id=category_id)
+
+
+@app.put("/categories/{category_id}", response_model=schemas.CategoryRoom)
+def update_hotel(category_id: int, category: schemas.CategoryRoomUpdate, db: Session = Depends(get_db)):
+    db_category = crud.get_category(db, category_id=category_id)
+    if db_category is None:
+        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
+                     "fields": {"status_code": 404, "detail": "Category not found"}})
+        raise HTTPException(status_code=404, detail="Category not found")
+    my_category = crud.update_category(db, category_id=category_id, category=category)
+    return my_category
+
+
+# -------ROOM------- #
 @app.post("/hotels/{hotel_id}/rooms/", response_model=schemas.Room)
 def create_room_for_hotel(
         hotel_id: int, room: schemas.RoomCreate, db: Session = Depends(get_db)
@@ -256,19 +294,23 @@ def read_rooms(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return rooms
 
 
-@app.delete("/hotels/{hotel_id}")
-def delete_user(hotel_id: int, db: Session = Depends(get_db)):
-    check_hotel(db, hotel_id)
-    return crud.delete_hotel(db, hotel_id=hotel_id)
-
-
-@app.delete("/categories/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
-    check_category(db, category_id)
-    return crud.delete_category(db, category_id=category_id)
-
-
 @app.delete("/rooms/{room_id}")
-def delete_category(room_id: int, db: Session = Depends(get_db)):
+def delete_room(room_id: int, db: Session = Depends(get_db)):
     check_room(db, room_id)
     return crud.delete_room(db, room_id=room_id)
+
+
+@app.put("/hotels/{hotel_id}/rooms/{room_id}", response_model=schemas.Room)
+def update_room_for_hotel(hotel_id: int, room_id: int, room: schemas.RoomUpdate, db: Session = Depends(get_db)):
+    db_hotel = crud.get_hotel(db, hotel_id=hotel_id)
+    if db_hotel is None:
+        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
+                     "fields": {"status_code": 404, "detail": "Hotel not found"}})
+        raise HTTPException(status_code=404, detail="Hotel not found")
+    db_room = crud.get_room(db, room_id=room_id)
+    if db_room is None:
+        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
+                     "fields": {"status_code": 404, "detail": "Room not found"}})
+        raise HTTPException(status_code=404, detail="Room not found")
+    my_room = crud.update_room(db, room_id=room_id, room=room)
+    return my_room
