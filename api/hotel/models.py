@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from .database import Base
+from database import Base
 
 
 class Hotel(Base):
@@ -15,6 +15,16 @@ class Hotel(Base):
     rooms = relationship("Room", back_populates="owner")
 
 
+class CategoryRoom(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(String, index=True)
+
+    rooms = relationship("Room", back_populates="category")
+
+
 class Room(Base):
     __tablename__ = "rooms"
 
@@ -22,5 +32,7 @@ class Room(Base):
     title = Column(String, index=True)
     description = Column(String, index=True)
     owner_id = Column(Integer, ForeignKey("hotels.id"))
+    category_id = Column(Integer, ForeignKey("categories.id"))
 
     owner = relationship("Hotel", back_populates="rooms")
+    category = relationship("CategoryRoom", back_populates="rooms")
