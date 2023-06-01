@@ -3,13 +3,32 @@ from __future__ import annotations
 from random import randint
 
 from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
-models.Base.metadata.create_all(bind=engine)
+
+INITIAL_DATA = {
+    'additionalServices': [
+        {'id': 51, 'name': 'Place de garare', 'price': '25'},
+        {'id': 52, 'name': 'Lit bébé', 'price': '0'},
+        {'id': 53, 'name': 'Pack romance', 'price': '50'},
+        {'id': 54, 'name': 'Petit déjeuner', 'price': '30'}
+    ]
+}
+
+
+def initialize_table(target, connection, **kw):
+    tablename = str(target)
+    if tablename in INITIAL_DATA and len(INITIAL_DATA[tablename]) > 0:
+        connection.execute(target.insert(), INITIAL_DATA[tablename])
+
+
+# set up of event before table creation
+event.listen(models.AdditionalService.__table__, 'after_create', initialize_table)
 
 
 app = FastAPI()
@@ -27,6 +46,16 @@ def get_db():
 @app.get("/")
 def health_check():
     return "Healthy"
+
+
+@app.on_event('startup')
+async def startup():
+    """
+    Executes on application startup.
+    """
+
+    models.Base.metadata.create_all(bind=engine)
+
 
 
 def check_user(db, user_id):

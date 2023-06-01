@@ -52,3 +52,43 @@ def test_create_hotel():
     data = response.json()
     assert data["name"] == "deadpool@example.com"
     assert data["id"] == hotel_id
+
+
+def test_create_category():
+    response = client.post(
+        "/categories/",
+        json={"name": "testcat", "description": "loremipsum"},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["name"] == "testcat"
+    assert "id" in data
+    category_id = data["id"]
+
+    response = client.get(f"/categories/{category_id}")
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["name"] == "testcat"
+    assert data["id"] == category_id
+
+
+def test_create_room():
+    response = client.post(
+        "/categories/",
+        json={"name": "galdius", "description": "T-1000"},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["name"] == "galdius"
+    assert "id" in data
+    category_id = data["id"]
+
+    response = client.post(
+        "/hotels/1/rooms/",
+        json={"title": "testcat", "description": "loremipsum", "category_id": category_id},
+    )
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["title"] == "testcat"
+    assert "id" in data
+
