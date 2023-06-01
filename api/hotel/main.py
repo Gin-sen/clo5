@@ -16,21 +16,33 @@ from .database import SessionLocal, engine
 INITIAL_DATA = {
     'hotels': [
         {
-            'id': 1,
-            'name': 'Yes',
-            'address': '3 rue de Moncuq',
+            'id': 51,
+            'name': 'Bobby’s Hotel',
+            'address': '7 rue du voisin',
+            'is_activ': True
+        },
+        {
+            'id': 52,
+            'name': 'Randy’s Hotel',
+            'address': '14 rue du Four',
             'is_activ': True
         }
     ],
     'categories': [
-        {'id': 1, 'name': 'Suite présidentielle', 'description': 'jusqu\'a 5 personnes, tarif de 1000$'},
-        {'id': 2, 'name': 'Suite', 'description': 'jusqu\'a 3 personnes, tarif de 720$'},
-        {'id': 3, 'name': 'Junior suite', 'description': 'jusqu\'a 2 personnes, tarif de 500$'},
-        {'id': 4, 'name': 'Chambre de luxe', 'description': 'jusqu\'a 2 personnes, tarif de 300$'},
-        {'id': 5, 'name': 'Chambre standard', 'description': 'jusqu\'a 2 personnes, tarif de 150$'}
+        {'id': 51, 'name': 'Suite présidentielle', 'description': 'jusqu\'a 5 personnes, tarif de 1000$'},
+        {'id': 52, 'name': 'Suite', 'description': 'jusqu\'a 3 personnes, tarif de 720$'},
+        {'id': 53, 'name': 'Junior suite', 'description': 'jusqu\'a 2 personnes, tarif de 500$'},
+        {'id': 54, 'name': 'Chambre de luxe', 'description': 'jusqu\'a 2 personnes, tarif de 300$'},
+        {'id': 55, 'name': 'Chambre standard', 'description': 'jusqu\'a 2 personnes, tarif de 150$'}
     ],
     'rooms': [
-        {'id': 1, 'title': '101', 'description': 'tu soules', 'owner_id': 1, 'category_id': 1}
+        {'id': 51, 'title': '101', 'description': 'la 101', 'owner_id': 51, 'category_id': 52},
+        {'id': 52, 'title': '102', 'description': 'la 102', 'owner_id': 51, 'category_id': 53},
+        {'id': 53, 'title': '103', 'description': 'la 103', 'owner_id': 51, 'category_id': 54},
+        {'id': 54, 'title': '104', 'description': 'la 104', 'owner_id': 51, 'category_id': 55},
+        {'id': 55, 'title': '105', 'description': 'la 105', 'owner_id': 51, 'category_id': 55},
+        {'id': 56, 'title': '101', 'description': 'la 101', 'owner_id': 52, 'category_id': 51},
+        {'id': 57, 'title': '102', 'description': 'la 102', 'owner_id': 52, 'category_id': 51}
     ]
 }
 
