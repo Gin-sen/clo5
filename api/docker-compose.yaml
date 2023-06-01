@@ -57,6 +57,7 @@ services:
     depends_on:
       - hotel.db
       - influxdb
+      - rabbitmq
 
   hotel.api-test:
      image: hotel-api-test
@@ -66,15 +67,29 @@ services:
        context: hotel
        target: test
      environment:
-       - DB_HOST=hotel.db
-       - DB_PORT=5432
-       - DB_USER=Bobby
-       - DB_PASS=BR
-       - DB_NAME=hotel-db
+      - IS_TU=True
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+      - RABBIT_USER=user
+      - RABBIT_PASS=password
+      - RABBIT_VHOST=my_vhost
+      - DB_HOST=hotel.db
+      - DB_PORT=5432
+      - DB_USER=Bobby
+      - DB_PASS=BR
+      - DB_NAME=hotel-db
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_ORGANIZATION=myorg
+      - INFLUX_TOKEN=mytoken
+      - INFLUX_BUCKET=hotel-api-dev
+     networks:
+       - k8s-cluster
      volumes:
        - ./hotel:/code/hotel
      depends_on:
-       - hotel.db
+      - hotel.db
+      - influxdb
+      - rabbitmq
 
   booking.db:
    image: postgres:13-alpine
@@ -98,19 +113,30 @@ services:
        context: booking
        target: final
      environment:
-       - DB_HOST=booking.db
-       - DB_PORT=5432
-       - DB_USER=Bobby
-       - DB_PASS=BR
-       - DB_NAME=booking-db
+      - DB_HOST=booking.db
+      - DB_PORT=5432
+      - DB_USER=Bobby
+      - DB_PASS=BR
+      - DB_NAME=booking-db
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+      - RABBIT_USER=user
+      - RABBIT_PASS=password
+      - RABBIT_VHOST=my_vhost
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_ORGANIZATION=myorg
+      - INFLUX_TOKEN=mytoken
+      - INFLUX_BUCKET=hotel-api-dev
      networks:
        - k8s-cluster
      volumes:
-       - ./hotel:/code/booking
+       - ./booking:/code/booking
      ports:
-       - "8003:80"
+       - "8004:80"
      depends_on:
-       - booking.db
+      - booking.db
+      - influxdb
+      - rabbitmq
 
   booking.api-test:
      image: booking-api-test
@@ -120,17 +146,28 @@ services:
        context: booking
        target: test
      environment:
-       - DB_HOST=booking.db
-       - DB_PORT=5432
-       - DB_USER=Bobby
-       - DB_PASS=BR
-       - DB_NAME=booking-db
+      - DB_HOST=booking.db
+      - DB_PORT=5432
+      - DB_USER=Bobby
+      - DB_PASS=BR
+      - DB_NAME=booking-db
+      - RABBIT_HOST=rabbitmq
+      - RABBIT_PORT=5672
+      - RABBIT_USER=user
+      - RABBIT_PASS=password
+      - RABBIT_VHOST=my_vhost
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_ORGANIZATION=myorg
+      - INFLUX_TOKEN=mytoken
+      - INFLUX_BUCKET=hotel-api-dev
      networks:
        - k8s-cluster
      volumes:
        - ./booking:/code/booking
      depends_on:
-       - booking.db
+      - booking.db
+      - influxdb
+      - rabbitmq
 
   influxdb:
     image: influxdb:2.6-alpine
