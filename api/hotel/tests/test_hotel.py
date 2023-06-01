@@ -1,9 +1,11 @@
+from typing import Any
+
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from ..database import Base
-from ..main import app, get_db
+from ..main import app, get_db, logstash_log
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
@@ -24,6 +26,11 @@ def override_get_db():
         db.close()
 
 
+def override_logstash_log(log: Any):
+    print(log)
+
+
+app.dependency_overrides[logstash_log] = override_logstash_log
 app.dependency_overrides[get_db] = override_get_db
 
 client = TestClient(app)

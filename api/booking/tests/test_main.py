@@ -5,7 +5,7 @@ from ..main import app
 client = TestClient(app)
 
 
-def test_health_cheak():
+def test_health_check():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == "Healthy"

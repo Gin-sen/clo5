@@ -3,21 +3,14 @@ from __future__ import annotations
 from random import randint
 
 from fastapi import Depends, FastAPI, HTTPException
-
 from sqlalchemy.orm import Session
+
 
 from . import crud, models, schemas
 from .database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
 
-fake_secret_token = "coneofsilence"
-
-fake_db = {
-    "foo": {"id": "foo", "title": "Foo", "description": "There goes my hero", "is_active": True, "booking.owner_id": 1},
-    "bar": {"id": "bar", "title": "Bar", "description": "The bartenders", "is_active": True, "booking.owner_id": 1}
-
-}
 
 app = FastAPI()
 

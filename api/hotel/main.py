@@ -1,36 +1,42 @@
 import json
 import logging
 from os import getenv
-from typing import Annotated, Any
-from fastapi import Depends, FastAPI, Header, HTTPException
+from typing import Any
+from fastapi import Depends, FastAPI, HTTPException
 from starlette.datastructures import State
 
-from pydantic import BaseModel
+from sqlalchemy import event
 from sqlalchemy.orm import Session
 from aio_pika import connect_robust, Message, DeliveryMode
 
-from utils.main import InfluxLogger
-import crud
-import models
-import schemas
-from database import SessionLocal, engine
+from . import influx_logger, crud, models, schemas
 
-models.Base.metadata.create_all(bind=engine)
+from .database import SessionLocal, engine
+
+INITIAL_DATA = {
+    'hotels': [
+        {
+            'id': 1,
+            'name': 'Yes',
+            'address': '3 rue de Moncuq',
+            'is_activ': True
+        }
+    ],
+    'categories': [
+        {'id': 1, 'name': 'Suite présidentielle', 'description': 'jusqu\'a 5 personnes, tarif de 1000$'},
+        {'id': 2, 'name': 'Suite', 'description': 'jusqu\'a 3 personnes, tarif de 720$'},
+        {'id': 3, 'name': 'Junior suite', 'description': 'jusqu\'a 2 personnes, tarif de 500$'},
+        {'id': 4, 'name': 'Chambre de luxe', 'description': 'jusqu\'a 2 personnes, tarif de 300$'},
+        {'id': 5, 'name': 'Chambre standard', 'description': 'jusqu\'a 2 personnes, tarif de 150$'}
+    ],
+    'rooms': [
+        {'id': 1, 'title': '101', 'description': 'tu soules', 'owner_id': 1, 'category_id': 1}
+    ]
+}
+
 logger = logging.getLogger(__name__)
 
-
-class ItemTest(BaseModel):
-    id: str
-    title: str
-    description: str | None = None
-
-
-fake_secret_token = "coneofsilence"
-
-fake_db = {
-    "foo": {"id": "foo", "title": "Foo", "description": "There goes my hero"},
-    "bar": {"id": "bar", "title": "Bar", "description": "The bartenders"},
-}
+is_tu = getenv("IS_TU", 'False').lower() in ('true', '1', 't')
 
 rabbit_host = getenv("RABBIT_HOST", "rabbitmq")
 rabbit_port = getenv("RABBIT_PORT", 5672)
@@ -43,9 +49,21 @@ influx_organization = getenv("INFLUX_ORGANIZATION", "influxdata")
 influx_token = getenv("INFLUX_TOKEN", "BobbyGetToken")
 influx_bucket = getenv("INFLUX_BUCKET", "hotel-api")
 
+
+def initialize_table(target, connection, **kw):
+    tablename = str(target)
+    if tablename in INITIAL_DATA and len(INITIAL_DATA[tablename]) > 0:
+        connection.execute(target.insert(), INITIAL_DATA[tablename])
+
+
+# set up of event before table creation
+event.listen(models.Hotel.__table__, 'after_create', initialize_table)
+event.listen(models.CategoryRoom.__table__, 'after_create', initialize_table)
+event.listen(models.Room.__table__, 'after_create', initialize_table)
+
 app = FastAPI()
 
-ilogger = InfluxLogger(
+ilogger = influx_logger.InfluxLogger(
     url=influx_url,
     organization=influx_organization,
     token=influx_token,
@@ -91,7 +109,8 @@ async def logstash_log(log: Any):
 
 @app.get("/")
 async def health_check():
-    await logstash_log({"status": "Healthy"})
+    if not is_tu:
+        await logstash_log({"status": "Healthy"})
     return "Healthy"
 
 
@@ -116,27 +135,7 @@ async def startup():
 
     await app.state.channel.declare_queue("logstash", durable=True)
 
-
-@app.on_event('startup')
-async def startup():
-    """
-    Executes on application startup.
-
-    Connects to RabbitMQ HOST and to the channel QUEUE_NAME.
-    """
-    app.state.connection = await connect_robust(
-        host=rabbit_host,
-        port=rabbit_port,
-        virtualhost=rabbit_vhost,
-        login=rabbit_user,
-        password=rabbit_pass,
-        connection_attempts=5,
-        retry_delay=10,
-    )
-    app.state.channel = await app.state.connection.channel()
-    logger.info(f'Connected pika producer to {rabbit_host}')
-
-    await app.state.channel.declare_queue("logstash", durable=True)
+    models.Base.metadata.create_all(bind=engine)
 
 
 @app.on_event('shutdown')
@@ -152,43 +151,6 @@ async def shutdown():
     if not app.state.connection.is_closed:
         await app.state.connection.close()
         logger.debug('connection closed')
-
-
-@app.get("/itemstest/{item_id}", response_model=ItemTest)
-async def read_main(item_id: str,
-                    x_token: Annotated[str | None, Header()] = None):
-    if x_token != fake_secret_token:
-        ex = HTTPException(status_code=400, detail="Invalid X-Token header")
-        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "WARN"})
-        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
-                     "fields": {"status_code": 400, "detail": "Invalid X-Token header"}})
-        raise ex
-    if item_id not in fake_db:
-        ex = HTTPException(status_code=404, detail="Item not found")
-        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "INFO"})
-        ilogger.log({"measurement": "exception", "tags": {"log_level": "INFO"},
-                     "fields": {"status_code": 404, "detail": "Item not found"}})
-        raise ex
-    return fake_db[item_id]
-
-
-@app.post("/itemstest/", response_model=ItemTest)
-async def create_item(item: ItemTest,
-                      x_token: Annotated[str | None, Header()] = None):
-    if x_token != fake_secret_token:
-        ex = HTTPException(status_code=400, detail="Invalid X-Token header")
-        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "WARN"})
-        ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},
-                     "fields": {"status_code": 400, "detail": "Invalid X-Token header"}})
-        raise ex
-    if item.id in fake_db:
-        ex = HTTPException(status_code=400, detail="Item already exists")
-        await logstash_log({"exception": {"status_code": ex.status_code, "detail": ex.detail}, "log_level": "ERROR"})
-        ilogger.log({"measurement": "exception", "tags": {"log_level": "ERROR"},
-                     "fields": {"status_code": 400, "detail": "Item already exists"}})
-        raise ex
-    fake_db[item.id] = item
-    return item
 
 
 # -------HOTEL------- #
@@ -218,9 +180,8 @@ def read_hotel(hotel_id: int, db: Session = Depends(get_db)):
     return db_hotel
 
 
-        
 @app.delete("/hotels/{hotel_id}")
-def delete_user(hotel_id: int, db: Session = Depends(get_db)):
+def delete_hotel(hotel_id: int, db: Session = Depends(get_db)):
     check_hotel(db, hotel_id)
     return crud.delete_hotel(db, hotel_id=hotel_id)
 
@@ -270,7 +231,7 @@ def delete_category(category_id: int, db: Session = Depends(get_db)):
 
 
 @app.put("/categories/{category_id}", response_model=schemas.CategoryRoom)
-def update_hotel(category_id: int, category: schemas.CategoryRoomUpdate, db: Session = Depends(get_db)):
+def update_category(category_id: int, category: schemas.CategoryRoomUpdate, db: Session = Depends(get_db)):
     db_category = crud.get_category(db, category_id=category_id)
     if db_category is None:
         ilogger.log({"measurement": "exception", "tags": {"log_level": "WARN"},

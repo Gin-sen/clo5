@@ -13,7 +13,7 @@ CMD pytest
 
 
 FROM build as final
-RUN rm -r /code/**/tests
-WORKDIR /code/booking
+RUN rm -r /code/**/tests*
+WORKDIR /code
 # shell CMD pour injection de variable
-CMD uvicorn main:app --host 0.0.0.0 --port 80
+CMD uvicorn booking.main:app --host 0.0.0.0 --port 80

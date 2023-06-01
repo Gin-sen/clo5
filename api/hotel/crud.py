@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
 
-import models
-import schemas
-
+from . import models, schemas
 
 # -------HOTEL------- #
 def get_hotel(db: Session, hotel_id: int):
