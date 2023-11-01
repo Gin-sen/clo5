@@ -1,5 +1,7 @@
 # Groupe de places_m 999858
 
+Tout clone et vues de ce projet sera reporté a l'ETNA
+
 # Infra
 
 A partir d'ici, nous considèrerons le dossier `ansible_dir` comme le répertoire racine.
